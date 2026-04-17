@@ -4,20 +4,20 @@
 
 ## 1. 解析入口
 
-E 文本解析的统一入口是 `com.efile.EFileParse` 接口：
+E 文本解析的统一入口是 `io.github.l4rue.cime.parse.EFileParse` 接口：
 
 ```java
 List<ETable> parseFile(File file) throws Exception;
 ```
 
-当前默认实现类是 `com.efile.impl.DefaultEfileParse`。最小调用方式如下：
+当前默认实现类是 `io.github.l4rue.cime.parse.DefaultEfileParse`。最小调用方式如下：
 
 ```java
 DefaultEfileParse parse = new DefaultEfileParse();
 List<ETable> list = parse.parseFile(new File("data/LP_K8000_STAdfgYDB_20191105_113002.DT"));
 ```
 
-如果需要进一步转换成业务对象，再通过 `com.util.BeanUtils.parseBean(...)` 按注解做字段映射。
+如果需要进一步转换成业务对象，再通过 `io.github.l4rue.cime.mapping.BeanUtils.parseBean(...)` 按注解做字段映射。
 
 ## 2. 总体解析流程
 
@@ -79,7 +79,7 @@ File
 
 ## 4. ETable 数据结构
 
-`com.efile.ETable` 是解析后的中间模型：
+`io.github.l4rue.cime.model.ETable` 是解析后的中间模型：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -208,7 +208,7 @@ datas = [
 
 流程：
 
-1. 判断业务类是否有 `@com.annotation.ETable` 注解。
+1. 判断业务类是否有 `@io.github.l4rue.cime.annotation.ETable` 注解。
 2. 如果有，使用注解值作为目标表名；否则使用类名作为目标表名。
 3. 校验目标表名和 `eTable.getTableName()` 是否一致，不一致则抛出异常。
 4. 遍历业务类字段。

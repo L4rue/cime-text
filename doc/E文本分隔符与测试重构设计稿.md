@@ -66,17 +66,17 @@ DefaultEfileParse.parseFile
 
 涉及的主要文件：
 
-- `src/main/java/com/util/StringUtils.java`
-- `src/main/java/com/efile/impl/DefaultEfileParse.java`
+- `src/main/java/io/github/l4rue/cime/internal/util/StringUtils.java`
+- `src/main/java/io/github/l4rue/cime/parse/DefaultEfileParse.java`
 - 可选：`README.md`（补充规则说明）
 
 ### 3.2 测试代码
 
 涉及的主要文件：
 
-- `src/test/java/com/util/StringUtilsTest.java`
-- `src/test/java/com/efile/impl/DefaultEfileParseTest.java`
-- `src/test/java/com/util/BeanUtilsTest.java`（回归验证，不作为重构主战场）
+- `src/test/java/io/github/l4rue/cime/internal/util/StringUtilsTest.java`
+- `src/test/java/io/github/l4rue/cime/parse/DefaultEfileParseTest.java`
+- `src/test/java/io/github/l4rue/cime/mapping/BeanUtilsTest.java`（回归验证，不作为重构主战场）
 
 ---
 

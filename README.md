@@ -1,4 +1,4 @@
-# elanguage
+# cime-text
 
 E 文本（E 语言）解析库，支持横表式（`@`）、单列式（`@@`）、多列式（`@#`）三类表体。
 
@@ -10,6 +10,9 @@ E 文本（E 语言）解析库，支持横表式（`@`）、单列式（`@@`）
 ## 快速使用
 
 ```java
+import io.github.l4rue.cime.model.ETable;
+import io.github.l4rue.cime.parse.DefaultEfileParse;
+
 DefaultEfileParse parser = new DefaultEfileParse();
 List<ETable> tables = parser.parseFile(new File("data/横表式.txt"));
 ```
@@ -24,6 +27,10 @@ List<ETable> tables = parser.parseFile(new File("data/横表式.txt"));
 - `ParseOptions.skipMalformedRows()`：跳过异常数据行继续解析。
 
 ```java
+import io.github.l4rue.cime.model.ETable;
+import io.github.l4rue.cime.parse.DefaultEfileParse;
+import io.github.l4rue.cime.parse.ParseOptions;
+
 DefaultEfileParse parser = new DefaultEfileParse();
 List<ETable> tables = parser.parseFile(new File("data/横表式.txt"), ParseOptions.skipMalformedRows());
 ```
@@ -33,6 +40,8 @@ List<ETable> tables = parser.parseFile(new File("data/横表式.txt"), ParseOpti
 使用 `@ETable` 和 `@EColumn` 注解进行表名、列名映射：
 
 ```java
+import io.github.l4rue.cime.mapping.BeanUtils;
+
 List<BizBean> beans = BeanUtils.parseBean(table, BizBean.class);
 ```
 

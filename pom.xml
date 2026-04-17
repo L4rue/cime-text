@@ -5,8 +5,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ieslab</groupId>
-    <artifactId>elanguage</artifactId>
+    <groupId>io.github.l4rue</groupId>
+    <artifactId>cime-text</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
