@@ -20,7 +20,7 @@ public class BeanUtils {
      *
      * @param eTable parsed table to convert
      * @param eClass bean type that receives row values
-     * @param <E> bean type
+     * @param <E>    bean type
      * @return list of populated bean instances in row order
      * @throws IllegalAccessException when a mapped field cannot be written
      * @throws InstantiationException when the bean type cannot be instantiated

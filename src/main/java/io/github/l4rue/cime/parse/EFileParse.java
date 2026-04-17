@@ -12,22 +12,22 @@ import java.util.List;
  */
 public interface EFileParse {
 
-	/**
-	 * Parses an E-language file with the default parser options.
-	 *
-	 * @param file source file to parse
-	 * @return parsed tables in source order
-	 * @throws Exception when parsing fails
-	 */
-	List<ETable> parseFile(File file) throws Exception;
+    /**
+     * Parses an E-language file with the default parser options.
+     *
+     * @param file source file to parse
+     * @return parsed tables in source order
+     * @throws Exception when parsing fails
+     */
+    List<ETable> parseFile(File file) throws Exception;
 
-	/**
-	 * Parses an E-language file with explicit parser options.
-	 *
-	 * @param file source file to parse
-	 * @param options parse options that control malformed-row handling
-	 * @return parsed tables in source order
-	 * @throws Exception when parsing fails
-	 */
-	List<ETable> parseFile(File file, ParseOptions options) throws Exception;
+    /**
+     * Parses an E-language file with explicit parser options.
+     *
+     * @param file    source file to parse
+     * @param options parse options that control malformed-row handling
+     * @return parsed tables in source order
+     * @throws Exception when parsing fails
+     */
+    List<ETable> parseFile(File file, ParseOptions options) throws Exception;
 }

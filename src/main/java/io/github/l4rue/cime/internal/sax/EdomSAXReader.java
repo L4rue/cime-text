@@ -3,20 +3,10 @@ package io.github.l4rue.cime.internal.sax;
 import io.github.l4rue.cime.internal.document.DocumentException;
 import io.github.l4rue.cime.internal.io.EfileUtils;
 import org.w3c.dom.Document;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.XMLReader;
+import org.xml.sax.*;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -25,20 +15,15 @@ import java.net.URL;
  * @author dingyh
  */
 public class EdomSAXReader {
-    
 
     private XMLReader xmlReader;
-	private String encoding;
+    private String encoding;
 
     /**
      * Creates a reader that lazily instantiates the default XML reader.
      */
     public EdomSAXReader() {
     }
-
-    
-    
- 
 
     /**
      * Creates a reader backed by the supplied XML reader.
@@ -62,29 +47,22 @@ public class EdomSAXReader {
         }
     }
 
-   
-
     /**
      * <p>
      * Reads a Document from the given <code>File</code>
      * </p>
-     * 
-     * @param file
-     *            is the <code>File</code> to read from.
-     * 
+     *
+     * @param file is the <code>File</code> to read from.
      * @return the newly created Document instance
-     * @throws DocumentException 
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
-    public Document read(File file) throws DocumentException  {
+    public Document read(File file) throws DocumentException {
         FileInputStream fileInputStream = null;
         try {
             fileInputStream = new FileInputStream(file);
             InputSource source = new InputSource(fileInputStream);
             if (this.encoding == null) {
-	            	this.encoding = EfileUtils.getCharset(file);
+                this.encoding = EfileUtils.getCharset(file);
             }
 
             if (this.encoding != null) {
@@ -109,7 +87,7 @@ public class EdomSAXReader {
             return read(source);
         } catch (FileNotFoundException e) {
             throw new DocumentException(e.getMessage(), e);
-        }finally {
+        } finally {
             if (fileInputStream != null) {
                 try {
                     fileInputStream.close();
@@ -123,14 +101,10 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given <code>URL</code> using SAX
      * </p>
-     * 
-     * @param url
-     *            <code>URL</code> to read from.
-     * 
+     *
+     * @param url <code>URL</code> to read from.
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(URL url) throws DocumentException {
         String systemID = url.toExternalForm();
@@ -147,7 +121,7 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given URL or filename using SAX.
      * </p>
-     * 
+     *
      * <p>
      * If the systemId contains a <code>':'</code> character then it is
      * assumed to be a URL otherwise its assumed to be a file name. If you want
@@ -155,14 +129,10 @@ public class EdomSAXReader {
      * either a {@link URL}or a {@link File}instance instead of a {@link
      * String} to denote the source of the document.
      * </p>
-     * 
-     * @param systemId
-     *            is a URL for a document or a file name.
-     * 
+     *
+     * @param systemId is a URL for a document or a file name.
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(String systemId) throws DocumentException {
         InputSource source = new InputSource(systemId);
@@ -177,14 +147,10 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given stream using SAX
      * </p>
-     * 
-     * @param in
-     *            <code>InputStream</code> to read from.
-     * 
+     *
+     * @param in <code>InputStream</code> to read from.
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(InputStream in) throws DocumentException {
         InputSource source = new InputSource(in);
@@ -199,14 +165,10 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given <code>Reader</code> using SAX
      * </p>
-     * 
-     * @param reader
-     *            is the reader for the input
-     * 
+     *
+     * @param reader is the reader for the input
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(Reader reader) throws DocumentException {
         InputSource source = new InputSource(reader);
@@ -221,16 +183,11 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given stream using SAX
      * </p>
-     * 
-     * @param in
-     *            <code>InputStream</code> to read from.
-     * @param systemId
-     *            is the URI for the input
-     * 
+     *
+     * @param in       <code>InputStream</code> to read from.
+     * @param systemId is the URI for the input
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(InputStream in, String systemId)
             throws DocumentException {
@@ -247,16 +204,11 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given <code>Reader</code> using SAX
      * </p>
-     * 
-     * @param reader
-     *            is the reader for the input
-     * @param systemId
-     *            is the URI for the input
-     * 
+     *
+     * @param reader   is the reader for the input
+     * @param systemId is the URI for the input
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(Reader reader, String systemId)
             throws DocumentException {
@@ -273,23 +225,18 @@ public class EdomSAXReader {
      * <p>
      * Reads a Document from the given <code>InputSource</code> using SAX
      * </p>
-     * 
-     * @param in
-     *            <code>InputSource</code> to read from.
-     * 
+     *
+     * @param in <code>InputSource</code> to read from.
      * @return the newly created Document instance
-     * 
-     * @throws DocumentException
-     *             if an error occurs during parsing.
+     * @throws DocumentException if an error occurs during parsing.
      */
     public Document read(InputSource in) throws DocumentException {
         try {
             XMLReader reader = getXMLReader();
-             
-            
-            EdomSAXContentHandler contentHandler = createContentHandler( );
+
+            EdomSAXContentHandler contentHandler = createContentHandler();
             reader.setContentHandler(contentHandler);
-            
+
             reader.parse(in);
             return contentHandler.getDocument();
         } catch (Exception e) {
@@ -313,27 +260,15 @@ public class EdomSAXReader {
         }
     }
 
-    
- 
-
-    
     private EdomSAXContentHandler createContentHandler() {
-		return new EdomSAXContentHandler();
-	}
-
-
-
-
-
-	 
+        return new EdomSAXContentHandler();
+    }
 
     /**
      * DOCUMENT ME!
-     * 
+     *
      * @return the <code>XMLReader</code> used to parse SAX events
-     * 
-     * @throws SAXException
-     *             DOCUMENT ME!
+     * @throws SAXException DOCUMENT ME!
      */
     public XMLReader getXMLReader() throws SAXException {
         if (xmlReader == null) {
@@ -343,30 +278,25 @@ public class EdomSAXReader {
         return xmlReader;
     }
 
-    private XMLReader createXMLReader() throws SAXException {
-		return new DdomSAXParsers().getXMLReader();
-	}
-
-
-
-
-
-	/**
+    /**
      * Sets the <code>XMLReader</code> used to parse SAX events
-     * 
-     * @param reader
-     *            is the <code>XMLReader</code> to parse SAX events
+     *
+     * @param reader is the <code>XMLReader</code> to parse SAX events
      */
     public void setXMLReader(XMLReader reader) {
         this.xmlReader = reader;
     }
 
+    private XMLReader createXMLReader() throws SAXException {
+        return new DdomSAXParsers().getXMLReader();
+    }
+
     /**
      * Returns encoding used for InputSource (null means system default
      * encoding)
-     * 
+     *
      * @return encoding used for InputSource
-     * 
+     *
      */
     public String getEncoding() {
         return encoding;
@@ -374,9 +304,8 @@ public class EdomSAXReader {
 
     /**
      * Sets encoding used for InputSource (null means system default encoding)
-     * 
-     * @param encoding
-     *            is encoding used for InputSource
+     *
+     * @param encoding is encoding used for InputSource
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
@@ -385,21 +314,15 @@ public class EdomSAXReader {
     /**
      * Sets the class name of the <code>XMLReader</code> to be used to parse
      * SAX events.
-     * 
-     * @param xmlReaderClassName
-     *            is the class name of the <code>XMLReader</code> to parse SAX
-     *            events
-     * 
-     * @throws SAXException
-     *             DOCUMENT ME!
+     *
+     * @param xmlReaderClassName is the class name of the <code>XMLReader</code> to parse SAX
+     *                           events
+     * @throws SAXException DOCUMENT ME!
      */
     public void setXMLReaderClassName(String xmlReaderClassName)
             throws SAXException {
         setXMLReader(XMLReaderFactory.createXMLReader(xmlReaderClassName));
     }
-
-     
- 
 
     protected static class SAXEntityResolver implements EntityResolver,
             Serializable {

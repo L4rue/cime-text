@@ -46,22 +46,22 @@ public final class Ascii {
 
     static {
         for (int i = 0; i < 256; i++) {
-            toUpper[i] = (byte)i;
-            toLower[i] = (byte)i;
+            toUpper[i] = (byte) i;
+            toLower[i] = (byte) i;
         }
 
         for (int lc = 'a'; lc <= 'z'; lc++) {
             int uc = lc + 'A' - 'a';
 
-            toUpper[lc] = (byte)uc;
-            toLower[uc] = (byte)lc;
+            toUpper[lc] = (byte) uc;
+            toLower[uc] = (byte) lc;
             isAlpha[lc] = true;
             isAlpha[uc] = true;
             isLower[lc] = true;
             isUpper[uc] = true;
         }
 
-        isWhite[ ' '] = true;
+        isWhite[' '] = true;
         isWhite['\t'] = true;
         isWhite['\r'] = true;
         isWhite['\n'] = true;
@@ -131,14 +131,14 @@ public final class Ascii {
 
     /**
      * Parses an unsigned integer from the specified subarray of bytes.
-     * @param b the bytes to parse
+     *
+     * @param b   the bytes to parse
      * @param off the start offset of the bytes
      * @param len the length of the bytes
-     * @exception NumberFormatException if the integer format was invalid
+     * @throws NumberFormatException if the integer format was invalid
      */
     public static int parseInt(byte[] b, int off, int len)
-        throws NumberFormatException
-    {
+            throws NumberFormatException {
         int c;
 
         if (b == null || len <= 0 || !isDigit(c = b[off++])) {
@@ -158,8 +158,7 @@ public final class Ascii {
     }
 
     public static int parseInt(char[] b, int off, int len)
-        throws NumberFormatException
-    {
+            throws NumberFormatException {
         int c;
 
         if (b == null || len <= 0 || !isDigit(c = b[off++])) {
@@ -180,14 +179,14 @@ public final class Ascii {
 
     /**
      * Parses an unsigned long from the specified subarray of bytes.
-     * @param b the bytes to parse
+     *
+     * @param b   the bytes to parse
      * @param off the start offset of the bytes
      * @param len the length of the bytes
-     * @exception NumberFormatException if the long format was invalid
+     * @throws NumberFormatException if the long format was invalid
      */
     public static long parseLong(byte[] b, int off, int len)
-        throws NumberFormatException
-    {
+            throws NumberFormatException {
         int c;
 
         if (b == null || len <= 0 || !isDigit(c = b[off++])) {
@@ -196,7 +195,7 @@ public final class Ascii {
 
         long n = c - '0';
         long m;
-        
+
         while (--len > 0) {
             if (!isDigit(c = b[off++])) {
                 throw new NumberFormatException();
@@ -215,8 +214,7 @@ public final class Ascii {
     }
 
     public static long parseLong(char[] b, int off, int len)
-        throws NumberFormatException
-    {
+            throws NumberFormatException {
         int c;
 
         if (b == null || len <= 0 || !isDigit(c = b[off++])) {
@@ -242,5 +240,4 @@ public final class Ascii {
 
         return n;
     }
-
 }

@@ -1,13 +1,13 @@
 /* $Id: ArrayStack.java 299475 2004-06-26 17:41:32Z remm $
  *
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +42,7 @@ import java.util.EmptyStackException;
  */
 public class ArrayStack<E> extends ArrayList<E> {
 
-    /** Ensure serialization compatibility */    
+    /** Ensure serialization compatibility */
     private static final long serialVersionUID = 2130079159931574599L;
 
     /**
@@ -55,10 +55,9 @@ public class ArrayStack<E> extends ArrayList<E> {
 
     /**
      * Constructs a new empty <code>ArrayStack</code> with an initial size.
-     * 
-     * @param initialSize  the initial size to use
-     * @throws IllegalArgumentException  if the specified initial size
-     *  is negative
+     *
+     * @param initialSize the initial size to use
+     * @throws IllegalArgumentException if the specified initial size is negative
      */
     public ArrayStack(int initialSize) {
         super(initialSize);
@@ -69,7 +68,7 @@ public class ArrayStack<E> extends ArrayList<E> {
      * <p>
      * This method exists for compatibility with <code>java.util.Stack</code>.
      * New users of this class should use <code>isEmpty</code> instead.
-     * 
+     *
      * @return true if the stack is currently empty
      */
     public boolean empty() {
@@ -80,7 +79,7 @@ public class ArrayStack<E> extends ArrayList<E> {
      * Returns the top item off of this stack without removing it.
      *
      * @return the top item on the stack
-     * @throws EmptyStackException  if the stack is empty
+     * @throws EmptyStackException if the stack is empty
      */
     public E peek() throws EmptyStackException {
         int n = size();
@@ -95,10 +94,10 @@ public class ArrayStack<E> extends ArrayList<E> {
      * Returns the n'th item down (zero-relative) from the top of this
      * stack without removing it.
      *
-     * @param n  the number of items down to go
+     * @param n the number of items down to go
      * @return the n'th item on the stack, zero relative
-     * @throws EmptyStackException  if there are not enough items on the
-     *  stack to satisfy this request
+     * @throws EmptyStackException if there are not enough items on the
+     *                             stack to satisfy this request
      */
     public E peek(int n) throws EmptyStackException {
         int m = (size() - n) - 1;
@@ -113,7 +112,7 @@ public class ArrayStack<E> extends ArrayList<E> {
      * Pops the top item off of this stack and return it.
      *
      * @return the top item on the stack
-     * @throws EmptyStackException  if the stack is empty
+     * @throws EmptyStackException if the stack is empty
      */
     public E pop() throws EmptyStackException {
         int n = size();
@@ -128,14 +127,13 @@ public class ArrayStack<E> extends ArrayList<E> {
      * Pushes a new item onto the top of this stack. The pushed item is also
      * returned. This is equivalent to calling <code>add</code>.
      *
-     * @param item  the item to be added
+     * @param item the item to be added
      * @return the item just pushed
      */
     public E push(E item) {
         add(item);
         return item;
     }
-
 
     /**
      * Returns the one-based position of the distance from the top that the
@@ -145,7 +143,7 @@ public class ArrayStack<E> extends ArrayList<E> {
      * <code>equals()</code> method is used to compare to the items
      * in this stack.
      *
-     * @param object  the object to be searched for
+     * @param object the object to be searched for
      * @return the 1-based depth into the stack of the object, or -1 if not found
      */
     public int search(E object) {
@@ -154,7 +152,7 @@ public class ArrayStack<E> extends ArrayList<E> {
         while (i >= 0) {
             Object current = get(i);
             if ((object == null && current == null) ||
-                (object != null && object.equals(current))) {
+                    (object != null && object.equals(current))) {
                 return n;
             }
             i--;
@@ -162,6 +160,4 @@ public class ArrayStack<E> extends ArrayList<E> {
         }
         return -1;
     }
-
-
 }

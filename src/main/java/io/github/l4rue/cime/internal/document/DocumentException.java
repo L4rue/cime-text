@@ -17,8 +17,7 @@ public class DocumentException extends Exception {
     /**
      * Creates an empty document exception.
      */
-    public DocumentException()
-    {
+    public DocumentException() {
         super();
     }
 
@@ -27,8 +26,7 @@ public class DocumentException extends Exception {
      *
      * @param message failure description
      */
-    public DocumentException(String message)
-    {
+    public DocumentException(String message) {
         super(message);
     }
 
@@ -37,8 +35,7 @@ public class DocumentException extends Exception {
      *
      * @param nestedException nested cause
      */
-    public DocumentException(Throwable nestedException)
-    {
+    public DocumentException(Throwable nestedException) {
         super(nestedException.getMessage());
         this.nestedException = nestedException;
     }
@@ -46,11 +43,10 @@ public class DocumentException extends Exception {
     /**
      * Creates a document exception with both a message and nested cause.
      *
-     * @param message failure description
+     * @param message         failure description
      * @param nestedException nested cause
      */
-    public DocumentException(String message, Throwable nestedException)
-    {
+    public DocumentException(String message, Throwable nestedException) {
         super(message);
         this.nestedException = nestedException;
     }
@@ -60,8 +56,7 @@ public class DocumentException extends Exception {
      *
      * @return nested cause or {@code null}
      */
-    public Throwable getNestedException()
-    {
+    public Throwable getNestedException() {
         return nestedException;
     }
 
@@ -71,23 +66,21 @@ public class DocumentException extends Exception {
      * @return expanded exception message
      */
     @Override
-    public String getMessage()
-    {
-        if(nestedException != null)
+    public String getMessage() {
+        if (nestedException != null) {
             return super.getMessage() + " Nested exception: " + nestedException.getMessage();
-        else
+        } else {
             return super.getMessage();
+        }
     }
 
     /**
      * Prints this exception and its nested cause to the standard error stream.
      */
     @Override
-    public void printStackTrace()
-    {
+    public void printStackTrace() {
         super.printStackTrace();
-        if(nestedException != null)
-        {
+        if (nestedException != null) {
             System.err.print("Nested exception: ");
             nestedException.printStackTrace();
         }
@@ -99,11 +92,9 @@ public class DocumentException extends Exception {
      * @param out destination print stream
      */
     @Override
-    public void printStackTrace(PrintStream out)
-    {
+    public void printStackTrace(PrintStream out) {
         super.printStackTrace(out);
-        if(nestedException != null)
-        {
+        if (nestedException != null) {
             out.println("Nested exception: ");
             nestedException.printStackTrace(out);
         }
@@ -115,11 +106,9 @@ public class DocumentException extends Exception {
      * @param writer destination writer
      */
     @Override
-    public void printStackTrace(PrintWriter writer)
-    {
+    public void printStackTrace(PrintWriter writer) {
         super.printStackTrace(writer);
-        if(nestedException != null)
-        {
+        if (nestedException != null) {
             writer.println("Nested exception: ");
             nestedException.printStackTrace(writer);
         }
