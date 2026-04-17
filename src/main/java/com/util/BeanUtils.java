@@ -29,6 +29,12 @@ public class BeanUtils {
         Field[] fields = eClass.getDeclaredFields();
         List<Object[]> datas = eTable.getDatas();
         String[] columnNames = eTable.getColumnNames();
+        if(columnNames == null){
+            columnNames = new String[0];
+        }
+        if(datas == null){
+            datas = new ArrayList<Object[]>();
+        }
         List<ColumnRecord> columnRecords = new ArrayList<>();
         for (Field field : fields) {
             boolean columnAnnotationPresent = field.isAnnotationPresent(EColumn.class) ;
@@ -51,11 +57,15 @@ public class BeanUtils {
         List<E> es = new ArrayList<>();
 
         for (Object[] data : datas) {
-            E e = eClass.newInstance();
+            E e = newInstance(eClass);
             for (ColumnRecord columnRecord : columnRecords) {
                 Field field = columnRecord.getField();
                 field.setAccessible(true);
-                field.set(e,data[columnRecord.getIndex()]);
+                int index = columnRecord.getIndex();
+                if(data == null || index < 0 || index >= data.length){
+                    continue;
+                }
+                field.set(e,data[index]);
             }
             es.add(e);
 
@@ -64,5 +74,15 @@ public class BeanUtils {
 
 
         return es;
+    }
+
+    private static <E> E newInstance(Class<E> eClass) throws InstantiationException {
+        try {
+            return eClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            InstantiationException ex = new InstantiationException(eClass.getName() + "实例化失败");
+            ex.initCause(e);
+            throw ex;
+        }
     }
 }

@@ -16,6 +16,16 @@ public interface EFileParse {
 	 * @Date Dec 11, 2012
 	 */
 	public List<ETable> parseFile(File file)  throws  Exception;
+
+	/**
+	 * 解析E语言文件入口（带配置）
+	 *
+	 * @param file 文件
+	 * @param options 解析配置
+	 * @return List<ETable>
+	 * @throws Exception 解析异常
+	 */
+	public List<ETable> parseFile(File file, ParseOptions options) throws Exception;
 		
 	
 }

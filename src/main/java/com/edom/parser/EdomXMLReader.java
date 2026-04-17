@@ -97,7 +97,6 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 				if(input.getEncoding()!=null){
 					endoding=input.getEncoding();
 				}
-				System.out.println("endoding="+endoding);
 				characterStream=new   InputStreamReader(byteStream,endoding);
 				input.setCharacterStream(characterStream);
 			}
@@ -118,13 +117,13 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 				if(chr=='/'){
 					
 					tempBuf.recycle();
-					while(chr!='\n'){
+					while(chr!='\n' && !docReadEnd){
 						chr=this.readNext();
 						tempBuf.append(chr);
 					}
-					tempBuf.pop();
-					String annotation=tempBuf.toStringInternal();
-					System.out.println("注释=="+annotation);
+					if(tempBuf.getLength()>0){
+						tempBuf.pop();
+					}
 				}
 			}
 			else if(chr=='<'){
@@ -219,8 +218,7 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 		String elmentTagContent=tempBuf.toStringInternal();
 
 		StandardAttributes attrs=new StandardAttributes();
-		//修改判断属性长度 todo th
-		if(attrs.getLength()>0){
+		if(elmentTagContent!=null && elmentTagContent.trim().length()>0){
 			parseAttributes(attrs, elmentTagContent, 0);
 		}
 
@@ -510,77 +508,57 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 	 * 解析attribute
 	 * @param elmentTagContent
 	 */
-	public void parseAttributes(StandardAttributes attrs,String elmentTagContent,int tagContentPos) {
-		//标示标签头内容开始解析的起始位置
-		int tagContentStart;
-		//解析结束
-		boolean tagContentEnd=false;
-		
-		char chr='0';
-		//
-		char wraper='\"';
-		//
-		boolean hasWraper=false;
-		tagContentStart=tagContentPos;
-		//找到“=”
-		boolean findEqual=false;
-		while(!findEqual&&!tagContentEnd){
-			chr=elmentTagContent.charAt(tagContentPos++);
-			if(chr=='='){
-				findEqual=true;
+	public void parseAttributes(StandardAttributes attrs,String elmentTagContent,int tagContentPos) throws SAXException {
+		int pos = tagContentPos;
+		int length = elmentTagContent.length();
+		while (pos < length) {
+			while (pos < length && isSpace(elmentTagContent.charAt(pos))) {
+				pos++;
 			}
-			if(chr=='>'||tagContentPos>=elmentTagContent.length()){
-				tagContentEnd=true;
+			if (pos >= length) {
+				return;
 			}
+			int nameStart = pos;
+			while (pos < length) {
+				char current = elmentTagContent.charAt(pos);
+				if (current == '=' || isSpace(current)) {
+					break;
+				}
+				pos++;
+			}
+			String attrName = elmentTagContent.substring(nameStart, pos).trim();
+			while (pos < length && isSpace(elmentTagContent.charAt(pos))) {
+				pos++;
+			}
+			if (pos >= length || elmentTagContent.charAt(pos) != '=') {
+				throw new SAXException("标签属性缺少'=': " + elmentTagContent);
+			}
+			pos++;
+			while (pos < length && isSpace(elmentTagContent.charAt(pos))) {
+				pos++;
+			}
+			if (pos >= length) {
+				throw new SAXException("标签属性值缺失: " + elmentTagContent);
+			}
+			char quote = elmentTagContent.charAt(pos);
+			if (!isWrapper(quote)) {
+				throw new SAXException("标签属性值必须使用引号包裹: " + elmentTagContent);
+			}
+			pos++;
+			int valueStart = pos;
+			while (pos < length && elmentTagContent.charAt(pos) != quote) {
+				pos++;
+			}
+			if (pos >= length) {
+				throw new SAXException("标签属性存在未闭合引号: " + elmentTagContent);
+			}
+			String attrValue = elmentTagContent.substring(valueStart, pos);
+			pos++;
+			if (attrName.length() == 0) {
+				throw new SAXException("标签属性名不能为空: " + elmentTagContent);
+			}
+			attrs.put(attrName, attrValue);
 		}
-		if(!findEqual){
-			return;
-		}
-		//获取属性名
-		String attrName=elmentTagContent.substring(tagContentStart,tagContentPos-1).trim();
-		//System.out.println("attrname="+attrName);
-		
-		/**
-		 * 找到第一个“\‘”的位置
-		 */
-		boolean attrValueStart=false;
-		while(!attrValueStart&&!tagContentEnd){
-			chr=elmentTagContent.charAt(tagContentPos++);
-			if(isWrapper(chr)){
-				wraper=chr;
-				hasWraper=true;
-				attrValueStart=true;
-			}
-			if(chr=='>'||tagContentPos>=elmentTagContent.length()){
-				tagContentEnd=true;
-			}
-		}
-		tagContentStart=tagContentPos;
-		/**
-		 * 找到第二个“\‘”的位置
-		 */
-		boolean attrValueEnd=false;
-		while(!attrValueEnd&&!tagContentEnd){
-			chr=elmentTagContent.charAt(tagContentPos++);
-			if(chr==wraper){
-				attrValueEnd=true;
-			}
-			if(chr=='>'||tagContentPos>=elmentTagContent.length()){
-				tagContentEnd=true;
-			}
-		}
-		//获取属性内容
-		String attrValue=elmentTagContent.substring(tagContentStart,tagContentPos-1).trim();
-		//System.out.println("attrValue="+attrValue);
-		
-		attrs.put(attrName, attrValue);
-		if(!tagContentEnd){
-			//解析下一个属性
-			parseAttributes(  attrs,elmentTagContent,  tagContentPos);
-		}
-		 
-		
-		 
 	}
 	
 	/**

@@ -85,11 +85,11 @@ public class EdomSAXReader {
         } catch (FileNotFoundException e) {
             throw new DocumentException(e.getMessage(), e);
         }finally {
-            //添加关流
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (fileInputStream != null) {
+                try {
+                    fileInputStream.close();
+                } catch (IOException ignored) {
+                }
             }
         }
     }
