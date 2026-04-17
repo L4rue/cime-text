@@ -1,45 +1,57 @@
 package com.util;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintStream;
+import java.util.List;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Simple debug helpers for printing parser structures.
+ *
+ * @author dingyh
  */
 public class Debug {
 
-	public static void debug(Object o){
-		debug(o,System.out);
+	/**
+	 * Prints a debug representation to {@link System#out}.
+	 *
+	 * @param value value to print
+	 */
+	public static void debug(Object value) {
+		debug(value, System.out);
 	}
-	public static void debug(Object o,PrintStream out) {
 
-		if (o instanceof String) {
-			out.print(o);
-		} else if (o instanceof Object[]) {
-
-			Object[] arr = (Object[]) o;
-			if (arr != null && arr.length > 0) {
-				for (int i = 0; i < arr.length; i++) {
-					if (i > 0) {
-						System.out.print(",");
-					}
-					debug(arr[i],out);
-				}
-				out.println();
-			}
-
-		}else if (o instanceof List){
-			List list=(List)o;
-			if(list!=null && list.size()>0){
-				for(int i=0;i<list.size();i++){
-					debug(list.get(i),out);
-				}
-				
-			}
+	/**
+	 * Prints a debug representation to the supplied output stream.
+	 *
+	 * @param value value to print
+	 * @param out target output stream
+	 */
+	public static void debug(Object value, PrintStream out) {
+		if (value == null) {
+			out.println("null");
+			return;
 		}
-		else{
-			debug(o.toString());
+		if (value instanceof String) {
+			out.print(value);
+			return;
 		}
-
+		if (value instanceof Object[]) {
+			Object[] array = (Object[]) value;
+			for (int i = 0; i < array.length; i++) {
+				if (i > 0) {
+					out.print(',');
+				}
+				debug(array[i], out);
+			}
+			out.println();
+			return;
+		}
+		if (value instanceof List<?>) {
+			List<?> list = (List<?>) value;
+			for (Object item : list) {
+				debug(item, out);
+			}
+			return;
+		}
+		out.println(value);
 	}
 }

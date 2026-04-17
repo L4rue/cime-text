@@ -9,6 +9,11 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Tests for bean mapping against parsed E-table data.
+ *
+ * @author dingyh
+ */
 public class BeanUtilsTest {
 
     @Test
@@ -26,7 +31,7 @@ public class BeanUtilsTest {
         com.efile.ETable table = new com.efile.ETable();
         table.setTableName("SampleBean");
         table.setColumnNames(new String[]{"A", "B"});
-        table.getDatas().add(new Object[]{"v1"});
+        table.getDataRows().add(new Object[]{"v1"});
         List<SampleBean> beans = BeanUtils.parseBean(table, SampleBean.class);
         Assert.assertEquals(1, beans.size());
         Assert.assertEquals("v1", beans.get(0).a);

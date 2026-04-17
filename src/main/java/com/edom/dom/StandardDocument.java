@@ -1,8 +1,5 @@
 package com.edom.dom;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -20,9 +17,12 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Minimal {@link Document} implementation used by the parser runtime.
+ * Methods not required by the parser intentionally return default values.
+ *
+ * @author dingyh
  */
 public class StandardDocument implements Document {
 
@@ -36,12 +36,12 @@ public class StandardDocument implements Document {
 	}
 
 	public Node cloneNode(boolean deep) {
-		// TODO Auto-generated method stub
+		// Not implemented by this lightweight DOM adapter.
 		return null;
 	}
 
 	public short compareDocumentPosition(Node other) throws DOMException {
-		// TODO Auto-generated method stub
+		// Not implemented by this lightweight DOM adapter.
 		return 0;
 	}
 

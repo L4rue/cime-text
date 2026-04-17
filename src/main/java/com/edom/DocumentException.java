@@ -4,40 +4,73 @@ package com.edom;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-/**
- * @author 王正权
- * 973598066@qq.com
- */
-public class DocumentException extends Exception
-{
 
+/**
+ * Checked exception raised while building the in-memory DOM representation.
+ *
+ * @author dingyh
+ */
+public class DocumentException extends Exception {
+
+    private Throwable nestedException;
+
+    /**
+     * Creates an empty document exception.
+     */
     public DocumentException()
     {
         super();
     }
 
+    /**
+     * Creates a document exception with a message.
+     *
+     * @param message failure description
+     */
     public DocumentException(String message)
     {
         super(message);
     }
 
+    /**
+     * Creates a document exception that wraps another exception.
+     *
+     * @param nestedException nested cause
+     */
     public DocumentException(Throwable nestedException)
     {
         super(nestedException.getMessage());
         this.nestedException = nestedException;
     }
 
+    /**
+     * Creates a document exception with both a message and nested cause.
+     *
+     * @param message failure description
+     * @param nestedException nested cause
+     */
     public DocumentException(String message, Throwable nestedException)
     {
         super(message);
         this.nestedException = nestedException;
     }
 
+    /**
+     * Returns the nested parsing exception, when one exists.
+     *
+     * @return nested cause or {@code null}
+     */
     public Throwable getNestedException()
     {
         return nestedException;
     }
 
+    /**
+     * Returns the message including nested exception details when available.
+     *
+     * @return expanded exception message
+     */
+    @Override
     public String getMessage()
     {
         if(nestedException != null)
@@ -46,6 +79,10 @@ public class DocumentException extends Exception
             return super.getMessage();
     }
 
+    /**
+     * Prints this exception and its nested cause to the standard error stream.
+     */
+    @Override
     public void printStackTrace()
     {
         super.printStackTrace();
@@ -56,6 +93,12 @@ public class DocumentException extends Exception
         }
     }
 
+    /**
+     * Prints this exception and its nested cause to the supplied stream.
+     *
+     * @param out destination print stream
+     */
+    @Override
     public void printStackTrace(PrintStream out)
     {
         super.printStackTrace(out);
@@ -66,6 +109,12 @@ public class DocumentException extends Exception
         }
     }
 
+    /**
+     * Prints this exception and its nested cause to the supplied writer.
+     *
+     * @param writer destination writer
+     */
+    @Override
     public void printStackTrace(PrintWriter writer)
     {
         super.printStackTrace(writer);
@@ -75,7 +124,5 @@ public class DocumentException extends Exception
             nestedException.printStackTrace(writer);
         }
     }
-
-    private Throwable nestedException;
 }
 

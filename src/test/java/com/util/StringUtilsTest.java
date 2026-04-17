@@ -3,6 +3,11 @@ package com.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for whitespace-aware string tokenization utilities.
+ *
+ * @author dingyh
+ */
 public class StringUtilsTest {
 
     @Test

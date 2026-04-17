@@ -2,15 +2,27 @@ package com.edom.io;
 
 import com.edom.DocumentException;
 import com.edom.parsers.DdomSAXParsers;
-import org.w3c.dom.*;
-import org.xml.sax.*;
+import org.w3c.dom.Document;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.Serializable;
 import java.net.URL;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Reads E-language sources into a W3C DOM document using the custom XML reader.
+ *
+ * @author dingyh
  */
 public class EdomSAXReader {
     
@@ -18,18 +30,31 @@ public class EdomSAXReader {
     private XMLReader xmlReader;
 	private String encoding;
 
-	public EdomSAXReader() {
+    /**
+     * Creates a reader that lazily instantiates the default XML reader.
+     */
+    public EdomSAXReader() {
     }
 
     
     
  
 
+    /**
+     * Creates a reader backed by the supplied XML reader.
+     *
+     * @param xmlReader XML reader used to produce SAX events
+     */
     public EdomSAXReader(XMLReader xmlReader) {
         this.xmlReader = xmlReader;
     }
 
-    
+    /**
+     * Creates a reader backed by the supplied XML reader implementation class.
+     *
+     * @param xmlReaderClassName fully qualified XML reader class name
+     * @throws SAXException when the XML reader cannot be created
+     */
     public EdomSAXReader(String xmlReaderClassName) throws SAXException {
         if (xmlReaderClassName != null) {
             this.xmlReader = XMLReaderFactory
@@ -394,39 +419,6 @@ public class EdomSAXReader {
 
             return new InputSource(systemId);
         }
-    }
-    
-    public static void main(String[] args){
-    
-    	try {
-    		EdomSAXReader reader=new EdomSAXReader();
-    		String path="C:\\test\\testhtml.txt";
-        	File file=new File(path);
-			Document doc=reader.read(file);
-			//System.out.println("====doc test=====");
-			 
-			NodeList nodeList=doc.getChildNodes();
-			for(int i=0;i<nodeList.getLength();i++){
-				//System.out.println("---------element-----");
-				Element ele=(Element) nodeList.item(i);
-				
-				//System.out.println("tagName=="+ele.getTagName());
-				//System.out.println("body==\n"+ele.getTextContent());
-				NamedNodeMap map=ele.getAttributes();
-				for(int j=0;j<map.getLength();j++){
-					Attr attr=(Attr) map.item(j);
-					//System.out.println("attribute:"+attr.getName()+"=="+attr.getValue());
-				}
-				
-				
-				
-			}
-		
-			
-		} catch (DocumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
     }
 }
 

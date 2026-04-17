@@ -9,34 +9,58 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
 import org.w3c.dom.UserDataHandler;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Lightweight {@link Attr} implementation used by the custom DOM model.
+ * Methods not required by the parser intentionally return default values.
+ *
+ * @author dingyh
  */
 public class StandardAttr implements Attr{
 
 	String name;
 	String value;
+	/**
+	 * Creates an empty attribute.
+	 */
 	public StandardAttr(){};
+
+	/**
+	 * Creates an attribute with the supplied name and value.
+	 *
+	 * @param name attribute name
+	 * @param value attribute value
+	 */
 	public StandardAttr(String name,String value){
 		this.name=name;
 		this.value=value;
 	};
+
+	/**
+	 * Sets the attribute name.
+	 *
+	 * @param name attribute name
+	 */
 	public void setName(String name){
 		this.name=name;
 	}
+
+	/**
+	 * Returns the attribute name.
+	 *
+	 * @return attribute name
+	 */
 	public String getName() {
-		// TODO Auto-generated method stub
 		return name;
 	}
 
 	public Element getOwnerElement() {
-		// TODO Auto-generated method stub
+		// Not implemented by this lightweight DOM adapter.
 		return null;
 	}
 
 	public TypeInfo getSchemaTypeInfo() {
-		// TODO Auto-generated method stub
+		// Not implemented by this lightweight DOM adapter.
 		return null;
 	}
 

@@ -10,7 +10,7 @@ E 文本解析的统一入口是 `com.efile.EFileParse` 接口：
 List<ETable> parseFile(File file) throws Exception;
 ```
 
-当前默认实现类是 `com.efile.impl.DefaultEfileParse`。调用方式可以参考 `com.MainTest`：
+当前默认实现类是 `com.efile.impl.DefaultEfileParse`。最小调用方式如下：
 
 ```java
 DefaultEfileParse parse = new DefaultEfileParse();

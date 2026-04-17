@@ -9,32 +9,49 @@ import org.w3c.dom.Element;
 
 
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Lightweight stack implementation for DOM elements during parsing.
+ *
+ * @author dingyh
  */
-public class ElementStack
-    
-{
+public class ElementStack {
 
+    private static final int DEFAULT_CAPACITY = 50;
+
+    protected Element[] stack;
+    protected int lastElementIndex;
+
+    /**
+     * Creates a stack with the default capacity.
+     */
     public ElementStack()
     {
-        this(50);
+        this(DEFAULT_CAPACITY);
     }
 
+    /**
+     * Creates a stack with the requested initial capacity.
+     *
+     * @param defaultCapacity initial array capacity
+     */
     public ElementStack(int defaultCapacity)
     {
         lastElementIndex = -1;
-         
         stack = new Element[defaultCapacity];
     }
 
-    
-
+    /**
+     * Removes all elements from the stack.
+     */
     public void clear()
     {
         lastElementIndex = -1;
     }
 
+    /**
+     * Returns the current top element without removing it.
+     *
+     * @return current top element, or {@code null} when the stack is empty
+     */
     public Element peekElement()
     {
         if(lastElementIndex < 0)
@@ -43,6 +60,11 @@ public class ElementStack
             return stack[lastElementIndex];
     }
 
+    /**
+     * Removes and returns the current top element.
+     *
+     * @return removed top element, or {@code null} when the stack is empty
+     */
     public Element popElement()
     {
         if(lastElementIndex < 0)
@@ -51,6 +73,11 @@ public class ElementStack
             return stack[lastElementIndex--];
     }
 
+    /**
+     * Pushes an element onto the stack.
+     *
+     * @param element element to push
+     */
     public void pushElement(Element element)
     {
         int length = stack.length;
@@ -61,16 +88,27 @@ public class ElementStack
 
     protected void reallocate(int size)
     {
-        Element oldStack[] = stack;
+        Element[] oldStack = stack;
         stack = new Element[size];
         System.arraycopy(oldStack, 0, stack, 0, oldStack.length);
     }
 
+    /**
+     * Returns the number of stored elements.
+     *
+     * @return current stack size
+     */
     public int size()
     {
         return lastElementIndex + 1;
     }
 
+    /**
+     * Returns the element at the supplied depth.
+     *
+     * @param depth zero-based depth in the internal stack array
+     * @return element at the requested depth, or {@code null} when out of bounds
+     */
     public Element getElement(int depth)
     {
         Element element;
@@ -85,16 +123,15 @@ public class ElementStack
         return element;
     }
 
-   
-
+    /**
+     * Returns the current top element.
+     *
+     * @return current top element, or {@code null} when the stack is empty
+     */
     public Element getCurrent()
     {
         return peekElement();
     }
-
-    
-    protected Element stack[];
-    protected int lastElementIndex;
 }
 
  

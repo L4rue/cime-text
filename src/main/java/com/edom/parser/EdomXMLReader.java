@@ -2,16 +2,30 @@ package com.edom.parser;
 
 import com.edom.dom.StandardAttributes;
 import com.edom.util.CharChunk;
-import org.xml.sax.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.DTDHandler;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Custom SAX-style reader that tokenizes the E-language input format.
+ * Unsupported SAX features and properties intentionally return default values.
+ *
+ * @author dingyh
  */
-public class EdomXMLReader implements    org.xml.sax.XMLReader{
+public class EdomXMLReader implements org.xml.sax.XMLReader {
 
-	//存储当前读取的字符
+	// Stores the current character being processed.
 	private char chr=0;
 	
 	private ContentHandler contentHandler;
@@ -28,27 +42,35 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 	 
 
 	/**
-	 * 当前缓冲区
+	 * Current buffer.
 	 */
 	private char[] buf=null;
 	/**
-	 * 存储前一个缓冲区 
+	 * Previous buffer snapshot.
 	 */
 	private char[] previousBuf=null;
 	/**
-	 * 暂存缓冲区
+	 * Temporary buffer.
 	 */
 	CharChunk tempBuf=null;
 	
 	/**
-	 * 读入完成
+	 * Indicates that the full document has been consumed.
 	 */
 	private boolean docReadEnd=false;
 	
+	/**
+	 * Creates a reader with the default buffer size.
+	 */
 	public EdomXMLReader(){
 		this(1024*8);
 	}
 	
+	/**
+	 * Creates a reader with the supplied buffer size.
+	 *
+	 * @param bufSize character buffer size; negative values fall back to the default size
+	 */
 	public EdomXMLReader(int bufSize){
 		if(bufSize<0){
 			bufSize=1024*8;
@@ -57,34 +79,66 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 		previousBuf=new char[bufSize];
 		tempBuf=new CharChunk(bufSize);
 	}
+
+	/**
+	 * Returns the currently registered content handler.
+	 *
+	 * @return active content handler, or {@code null} when none was configured
+	 */
 	public ContentHandler getContentHandler() {
 		return contentHandler;
 	}
 
+	/**
+	 * Returns the configured DTD handler.
+	 *
+	 * @return always {@code null} because DTD callbacks are not supported
+	 */
 	public DTDHandler getDTDHandler() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * Returns the configured entity resolver.
+	 *
+	 * @return always {@code null} because custom entity resolution is not supported
+	 */
 	public EntityResolver getEntityResolver() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * Returns the configured error handler.
+	 *
+	 * @return always {@code null} because custom error handlers are not tracked
+	 */
 	public ErrorHandler getErrorHandler() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * Returns the value of a SAX feature flag.
+	 *
+	 * @param name feature name
+	 * @return always {@code false} because no optional SAX features are exposed
+	 * @throws SAXNotRecognizedException never thrown by this implementation
+	 * @throws SAXNotSupportedException never thrown by this implementation
+	 */
 	public boolean getFeature(String name) throws SAXNotRecognizedException,
 			SAXNotSupportedException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
+	/**
+	 * Returns the value of a SAX property.
+	 *
+	 * @param name property name
+	 * @return always {@code null} because no optional SAX properties are exposed
+	 * @throws SAXNotRecognizedException never thrown by this implementation
+	 * @throws SAXNotSupportedException never thrown by this implementation
+	 */
 	public Object getProperty(String name) throws SAXNotRecognizedException,
 			SAXNotSupportedException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -93,16 +147,24 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 		if(characterStream==null){
 			InputStream byteStream=input.getByteStream();
 			if(byteStream!=null){
-				String endoding="GBK";
+				String encoding="GBK";
 				if(input.getEncoding()!=null){
-					endoding=input.getEncoding();
+					encoding=input.getEncoding();
 				}
-				characterStream=new   InputStreamReader(byteStream,endoding);
+				characterStream=new InputStreamReader(byteStream, encoding);
 				input.setCharacterStream(characterStream);
 			}
 			
 		}
 	}
+
+	/**
+	 * Parses SAX events from the supplied input source.
+	 *
+	 * @param input input source to parse
+	 * @throws IOException when the underlying stream cannot be read
+	 * @throws SAXException when the content is malformed
+	 */
 	public void parse(InputSource input)throws IOException, SAXException{
 		init(input);
 		
@@ -360,40 +422,70 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 	}
 
 	public void parse(String systemId) throws IOException, SAXException {
-		// TODO Auto-generated method stub
-		
+		parse(new InputSource(systemId));
 	}
 
+	/**
+	 * Registers the content handler that receives parser callbacks.
+	 *
+	 * @param handler target content handler
+	 */
 	public void setContentHandler(ContentHandler handler) {
 		this.contentHandler=handler;
 		
 	}
 
+	/**
+	 * Ignores DTD handler registration because DTD callbacks are not supported.
+	 *
+	 * @param handler ignored DTD handler
+	 */
 	public void setDTDHandler(DTDHandler handler) {
-		// TODO Auto-generated method stub
-		
+		// DTD callbacks are not supported by this lightweight reader.
 	}
 
+	/**
+	 * Ignores entity resolver registration because external entity resolution is not supported.
+	 *
+	 * @param resolver ignored entity resolver
+	 */
 	public void setEntityResolver(EntityResolver resolver) {
-		// TODO Auto-generated method stub
-		
+		// External entity resolution is not supported by this lightweight reader.
 	}
 
+	/**
+	 * Ignores error handler registration because errors are raised directly as exceptions.
+	 *
+	 * @param handler ignored error handler
+	 */
 	public void setErrorHandler(ErrorHandler handler) {
-		// TODO Auto-generated method stub
-		
+		// Errors are raised directly instead of being delegated.
 	}
 
+	/**
+	 * Ignores SAX feature assignments because no optional features are supported.
+	 *
+	 * @param name feature name
+	 * @param value requested feature value
+	 * @throws SAXNotRecognizedException never thrown by this implementation
+	 * @throws SAXNotSupportedException never thrown by this implementation
+	 */
 	public void setFeature(String name, boolean value)
 			throws SAXNotRecognizedException, SAXNotSupportedException {
-		// TODO Auto-generated method stub
-		
+		// Optional SAX features are not supported.
 	}
 
+	/**
+	 * Ignores SAX property assignments because no optional properties are supported.
+	 *
+	 * @param name property name
+	 * @param value requested property value
+	 * @throws SAXNotRecognizedException never thrown by this implementation
+	 * @throws SAXNotSupportedException never thrown by this implementation
+	 */
 	public void setProperty(String name, Object value)
 			throws SAXNotRecognizedException, SAXNotSupportedException {
-		// TODO Auto-generated method stub
-		
+		// Optional SAX properties are not supported.
 	}
 
 
@@ -574,47 +666,4 @@ public class EdomXMLReader implements    org.xml.sax.XMLReader{
 		}
 		return false;
 	}
-	
-	
-	
-	public static void main(String[] args){
-	
-		 try {
-	            
-			// String files="C:\\aa.txt";
-			 String files="C:\\test\\testhtml.txt";
-	         //String files="C:\\test\\单列式.txt";
-			 File file=new File(files);
-			 	
-	            InputSource source = new InputSource(new FileInputStream(file));
-	            source.setEncoding("GBK");
-	            String path = file.getAbsolutePath();
-
-	            if (path != null) {
-	                // Code taken from Ant FileUtils
-	                StringBuffer sb = new StringBuffer("file://");
-
-	                // add an extra slash for filesystems with drive-specifiers
-	                if (!path.startsWith(File.separator)) {
-	                    sb.append("/");
-	                }
-
-	                path = path.replace('\\', '/');
-	                sb.append(path);
-
-	                source.setSystemId(sb.toString());
-	            }
-
-	            EdomXMLReader parse=new EdomXMLReader();
-	            parse.parse(source);
-	           
-	        } catch (Exception e) {
-	           e.printStackTrace();
-	        }
-	}
-	
-	
-	 
-
-	
 }

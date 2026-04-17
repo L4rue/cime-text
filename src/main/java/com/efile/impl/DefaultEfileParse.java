@@ -18,8 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Default implementation that parses E-language files into {@link ETable} objects.
+ *
+ * @author dingyh
  */
 public class DefaultEfileParse implements EFileParse {
 
@@ -31,7 +32,7 @@ public class DefaultEfileParse implements EFileParse {
 	@Override
 	public List<ETable> parseFile(File file, ParseOptions options) throws Exception {
 		if (file == null) {
-			throw new IllegalArgumentException("file不能为空");
+			throw new IllegalArgumentException("file must not be null");
 		}
 		ParseOptions effectiveOptions = options == null ? ParseOptions.strict() : options;
 		EdomSAXReader reader = new EdomSAXReader();
@@ -63,12 +64,12 @@ public class DefaultEfileParse implements EFileParse {
 	private void parseTableData(ETable table, String content, ParseOptions options) {
 		String tableName = table.getTableName();
 		if (content == null) {
-			throw parseException(tableName, 0, "表体为空");
+			throw parseException(tableName, 0, "table body is empty");
 		}
 		String[] contentArr = content.split("\\r?\\n", -1);
 		int headLineIndex = findFirstNonBlankLine(contentArr);
 		if (headLineIndex < 0) {
-			throw parseException(tableName, 0, "表体为空");
+			throw parseException(tableName, 0, "table body is empty");
 		}
 		String headStr = contentArr[headLineIndex].trim();
 		if (headStr.startsWith("@@")) {
@@ -78,19 +79,19 @@ public class DefaultEfileParse implements EFileParse {
 		} else if (headStr.startsWith("@")) {
 			parseRowType(table, contentArr, headLineIndex, options);
 		} else {
-			throw parseException(tableName, headLineIndex + 1, "首行必须以@、@@或@#开头");
+			throw parseException(tableName, headLineIndex + 1, "first line must start with @, @@, or @#");
 		}
 	}
 
 	/**
-	 * 解析单列式
+	 * Parses the single-column table layout.
 	 * @@
 	 */
 	private void parseSingleColType(ETable table, String[] contentArr, int headLineIndex, ParseOptions options) {
 		String headStr = contentArr[headLineIndex].trim();
 		String[] headerArr = splitString(headStr.substring("@@".length()), table, headLineIndex + 1);
 		if (headerArr.length != 2 && headerArr.length != 3) {
-			throw parseException(table.getTableName(), headLineIndex + 1, "单列式表头字段数量必须为2或3");
+			throw parseException(table.getTableName(), headLineIndex + 1, "single-column header must contain 2 or 3 fields");
 		}
 		Map<String, String> propMap = new LinkedHashMap<String, String>();
 		String[] lockedColumns = null;
@@ -103,14 +104,14 @@ public class DefaultEfileParse implements EFileParse {
 			}
 			int lineNo = i + 1;
 			if (linestr.length() == 1) {
-				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "单列式数据行为空", options)) {
+				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "single-column data row is empty", options)) {
 					continue;
 				}
 			}
 			String[] lineArr = splitString(linestr.substring(1), table, lineNo);
 			if (lineArr.length != headerArr.length) {
 				if (shouldSkipMalformedRow(table.getTableName(), lineNo,
-						"单列式字段数量不匹配，期望" + headerArr.length + "，实际" + lineArr.length, options)) {
+						"single-column field count mismatch, expected " + headerArr.length + " but was " + lineArr.length, options)) {
 					continue;
 				}
 			}
@@ -118,7 +119,7 @@ public class DefaultEfileParse implements EFileParse {
 			int valueIndex = nameIndex + 1;
 			String propName = lineArr[nameIndex];
 			if (propName == null || propName.trim().length() == 0) {
-				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "单列式属性名为空", options)) {
+				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "single-column property name is empty", options)) {
 					continue;
 				}
 			}
@@ -141,7 +142,7 @@ public class DefaultEfileParse implements EFileParse {
 	}
 
 	/**
-	 * 解析多列式
+	 * Parses the multi-column table layout.
 	 */
 	private void parseMultiColType(ETable table, String[] contentArr, int headLineIndex, ParseOptions options) {
 		List<String[]> propList = new ArrayList<String[]>();
@@ -153,18 +154,18 @@ public class DefaultEfileParse implements EFileParse {
 			}
 			int lineNo = i + 1;
 			if (linestr.length() == 1) {
-				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "多列式数据行为空", options)) {
+				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "multi-column data row is empty", options)) {
 					continue;
 				}
 			}
 			String[] lineArr = splitString(linestr.substring(1), table, lineNo);
 			if (lineArr.length < 3) {
-				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "多列式字段数量不足，至少需要3个字段", options)) {
+				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "multi-column row must contain at least 3 fields", options)) {
 					continue;
 				}
 			}
 			if (lineArr[1] == null || lineArr[1].trim().length() == 0) {
-				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "多列式列名为空", options)) {
+				if (shouldSkipMalformedRow(table.getTableName(), lineNo, "multi-column column name is empty", options)) {
 					continue;
 				}
 			}
@@ -172,14 +173,14 @@ public class DefaultEfileParse implements EFileParse {
 				expectedLength = lineArr.length;
 			} else if (lineArr.length != expectedLength) {
 				if (shouldSkipMalformedRow(table.getTableName(), lineNo,
-						"多列式字段数量不匹配，期望" + expectedLength + "，实际" + lineArr.length, options)) {
+						"multi-column field count mismatch, expected " + expectedLength + " but was " + lineArr.length, options)) {
 					continue;
 				}
 			}
 			propList.add(lineArr);
 		}
 		if (propList.size() == 0) {
-			throw parseException(table.getTableName(), headLineIndex + 1, "多列式没有有效的#数据行");
+			throw parseException(table.getTableName(), headLineIndex + 1, "multi-column section does not contain a valid # data row");
 		}
 		String[] columnNames = new String[propList.size()];
 		for (int col = 0; col < columnNames.length; col++) {
@@ -191,18 +192,18 @@ public class DefaultEfileParse implements EFileParse {
 			for (int col = 0; col < data.length; col++) {
 				data[col] = propList.get(col)[row];
 			}
-			table.getDatas().add(data);
+			table.getDataRows().add(data);
 		}
 	}
 
 	/**
-	 * 解析横表式
+	 * Parses the row-based table layout.
 	 */
 	private void parseRowType(ETable table, String[] contentArr, int headLineIndex, ParseOptions options) {
 		String headStr = contentArr[headLineIndex].trim();
 		String[] headerArr = splitString(headStr.substring("@".length()), table, headLineIndex + 1);
 		if (headerArr.length == 0) {
-			throw parseException(table.getTableName(), headLineIndex + 1, "横表式表头不能为空");
+			throw parseException(table.getTableName(), headLineIndex + 1, "row-based header must not be empty");
 		}
 		String[] columnNames = copyArray(headerArr);
 		table.setColumnNames(columnNames);
@@ -218,31 +219,31 @@ public class DefaultEfileParse implements EFileParse {
 			}
 			if (linestr.length() == 1) {
 				if (marker == '#') {
-					if (shouldSkipMalformedRow(table.getTableName(), lineNo, "横表式数据行为空", options)) {
+					if (shouldSkipMalformedRow(table.getTableName(), lineNo, "row-based data row is empty", options)) {
 						continue;
 					}
 				}
-				throw parseException(table.getTableName(), lineNo, "横表式引导符后缺少字段");
+				throw parseException(table.getTableName(), lineNo, "row-based marker must be followed by fields");
 			}
 			String[] lineArr = splitString(linestr.substring(1), table, lineNo);
 			if (lineArr.length != columnNames.length) {
 				if (marker == '#') {
 					if (shouldSkipMalformedRow(table.getTableName(), lineNo,
-							"横表式字段数量不匹配，期望" + columnNames.length + "，实际" + lineArr.length, options)) {
+							"row-based field count mismatch, expected " + columnNames.length + " but was " + lineArr.length, options)) {
 						continue;
 					}
 				}
 				throw parseException(table.getTableName(), lineNo,
-						"横表式字段数量不匹配，期望" + columnNames.length + "，实际" + lineArr.length);
+						"row-based field count mismatch, expected " + columnNames.length + " but was " + lineArr.length);
 			}
 			if (marker == '%') {
 				table.setTypes(copyArray(lineArr));
 			} else if (marker == '$') {
-				table.setUnites(copyArray(lineArr));
+				table.setUnits(copyArray(lineArr));
 			} else if (marker == ':') {
 				table.setLimitValues(copyArray(lineArr));
 			} else {
-				table.getDatas().add(copyArray(lineArr));
+				table.getDataRows().add(copyArray(lineArr));
 			}
 		}
 	}
@@ -257,7 +258,7 @@ public class DefaultEfileParse implements EFileParse {
 			lockedColumns = copyArray(recordColumns);
 			table.setColumnNames(copyArray(recordColumns));
 		} else if (!sameColumns(lockedColumns, recordColumns)) {
-			if (shouldSkipMalformedRow(table.getTableName(), lineNo, "单列式记录字段与首条记录不一致", options)) {
+			if (shouldSkipMalformedRow(table.getTableName(), lineNo, "single-column record fields do not match the first record", options)) {
 				return lockedColumns;
 			}
 		}
@@ -265,7 +266,7 @@ public class DefaultEfileParse implements EFileParse {
 		for (int i = 0; i < table.getColumnNames().length; i++) {
 			data[i] = propMap.get(table.getColumnNames()[i]);
 		}
-		table.getDatas().add(data);
+		table.getDataRows().add(data);
 		return lockedColumns;
 	}
 
@@ -278,7 +279,7 @@ public class DefaultEfileParse implements EFileParse {
 
 	private RuntimeException parseException(String tableName, int lineNo, String reason) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("E文本解析失败");
+		sb.append("E-file parsing failed");
 		if (tableName != null && tableName.trim().length() > 0) {
 			sb.append(" [table=").append(tableName).append("]");
 		}

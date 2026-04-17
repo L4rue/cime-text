@@ -1,20 +1,21 @@
 package com.edom.dom;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.w3c.dom.Attr;
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Mutable attribute collection used while parsing start tags.
+ *
+ * @author dingyh
  */
 public class StandardAttributes implements org.xml.sax.Attributes{
 
 	
-	private  LinkedHashMap<String,String> attributes=new LinkedHashMap<String,String>();
+	private final Map<String, String> attributes = new LinkedHashMap<String, String>();
 	
+	/**
+	 * Creates an empty mutable attribute collection.
+	 */
 	public StandardAttributes(){}
 	
 	
@@ -22,6 +23,12 @@ public class StandardAttributes implements org.xml.sax.Attributes{
 	public void put(String name,String value){
 		attributes.put(name, value);
 	}
+	/**
+	 * Returns the index of the named attribute.
+	 *
+	 * @param name attribute name
+	 * @return zero-based attribute index, or {@code -1} when absent
+	 */
 	public int getIndex(String name) {
 		int i=0;
 		for(String key:attributes.keySet()){
@@ -33,9 +40,15 @@ public class StandardAttributes implements org.xml.sax.Attributes{
 		return -1;
 	}
 
+	/**
+	 * Returns the index of the named attribute using namespace-aware lookup.
+	 *
+	 * @param uri ignored namespace value for this lightweight implementation
+	 * @param localName local attribute name
+	 * @return zero-based attribute index, or {@code -1} when absent
+	 */
 	public int getIndex(String uri, String localName) {
-		// TODO Auto-generated method stub
-		return 0;
+		return getIndex(localName);
 	}
 
 	public int getLength() {
@@ -57,23 +70,44 @@ public class StandardAttributes implements org.xml.sax.Attributes{
 		return getLocalName(index);
 	}
 
+	/**
+	 * Returns the declared attribute type for the supplied index.
+	 *
+	 * @param index zero-based attribute index
+	 * @return {@code "CDATA"} when the index is valid, otherwise {@code null}
+	 */
 	public String getType(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		return index >= 0 && index < attributes.size() ? "CDATA" : null;
 	}
 
+	/**
+	 * Returns the declared attribute type for the supplied name.
+	 *
+	 * @param name attribute name
+	 * @return {@code "CDATA"} when the attribute exists, otherwise {@code null}
+	 */
 	public String getType(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return attributes.containsKey(name) ? "CDATA" : null;
 	}
 
+	/**
+	 * Returns the declared attribute type for the supplied local name.
+	 *
+	 * @param uri ignored namespace value for this lightweight implementation
+	 * @param localName local attribute name
+	 * @return {@code "CDATA"} when the attribute exists, otherwise {@code null}
+	 */
 	public String getType(String uri, String localName) {
-		// TODO Auto-generated method stub
-		return null;
+		return getType(localName);
 	}
 
+	/**
+	 * Returns the namespace URI for the attribute at the supplied index.
+	 *
+	 * @param index zero-based attribute index
+	 * @return always {@code null} because namespaces are not tracked by this implementation
+	 */
 	public String getURI(int index) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -93,8 +127,7 @@ public class StandardAttributes implements org.xml.sax.Attributes{
 	}
 
 	public String getValue(String uri, String localName) {
-		// TODO Auto-generated method stub
-		return null;
+		return getValue(localName);
 	}
 	 
 

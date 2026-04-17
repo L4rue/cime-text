@@ -38,9 +38,7 @@ import java.util.EmptyStackException;
  * <p>Unlike <code>Stack</code>, <code>ArrayStack</code> accepts null entries.
  * </p>
  *
-/**
- * @author 王正权
- * 973598066@qq.com
+ * @author dingyh
  */
 public class ArrayStack<E> extends ArrayList<E> {
 

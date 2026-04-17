@@ -11,6 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
+/**
+ * Tests for the default E-file parser implementation.
+ *
+ * @author dingyh
+ */
 public class DefaultEfileParseTest {
 
     @Test
@@ -23,7 +28,7 @@ public class DefaultEfileParseTest {
         Assert.assertEquals("test", table.getTableName());
         Assert.assertEquals("2012-04-11 11:12", table.getDate());
         Assert.assertArrayEquals(new String[]{"顺序", "单位名称", "发生时间", "次数"}, table.getColumnNames());
-        Assert.assertEquals(58, table.getDatas().size());
+        Assert.assertEquals(58, table.getDataRows().size());
     }
 
     @Test
@@ -36,7 +41,7 @@ public class DefaultEfileParseTest {
         Assert.assertEquals("DG", table.getTableName());
         Assert.assertEquals("2012-04-23", table.getDate());
         Assert.assertArrayEquals(new String[]{"单位名称", "发生时间", "次数"}, table.getColumnNames());
-        Assert.assertEquals(4, table.getDatas().size());
+        Assert.assertEquals(4, table.getDataRows().size());
     }
 
     @Test
@@ -48,7 +53,7 @@ public class DefaultEfileParseTest {
         ETable table = tables.get(0);
         Assert.assertEquals("DG", table.getTableName());
         Assert.assertArrayEquals(new String[]{"单位名称", "发生时间", "次数"}, table.getColumnNames());
-        Assert.assertEquals(4, table.getDatas().size());
+        Assert.assertEquals(4, table.getDataRows().size());
     }
 
     @Test
@@ -60,9 +65,9 @@ public class DefaultEfileParseTest {
         ETable first = tables.get(0);
         Assert.assertEquals("StandbyDbInfo", first.getTableName());
         Assert.assertArrayEquals(new String[]{"设备ID", "厂站名", "量测名", "时间", "有功值"}, first.getColumnNames());
-        Assert.assertEquals(6, first.getDatas().size());
+        Assert.assertEquals(6, first.getDataRows().size());
         Assert.assertArrayEquals(new Object[]{"11681223431138934", "八嘎桥站", "哈南.是咯站/500kV.高铁二线/无功值", "2019-11-5 11:25", "-1382333.435"},
-                first.getDatas().get(0));
+                first.getDataRows().get(0));
     }
 
     @Test
@@ -83,13 +88,13 @@ public class DefaultEfileParseTest {
             parser.parseFile(null);
             Assert.fail("Expected parser to fail");
         } catch (IllegalArgumentException ex) {
-            Assert.assertTrue(ex.getMessage().contains("file不能为空"));
+            Assert.assertTrue(ex.getMessage().contains("file must not be null"));
         }
     }
 
     @Test
     public void shouldThrowWhenBodyIsEmpty() throws Exception {
-        assertParseErrorContains("<T date='2026-01-01'>\n\n</T>\n", "表体为空");
+        assertParseErrorContains("<T date='2026-01-01'>\n\n</T>\n", "table body is empty");
     }
 
     @Test
@@ -108,7 +113,7 @@ public class DefaultEfileParseTest {
                         + "# 4 5\n"
                         + "# 6 7 8\n"
                         + "</T>\n",
-                "横表式字段数量不匹配");
+                "row-based field count mismatch");
     }
 
     @Test
@@ -121,9 +126,9 @@ public class DefaultEfileParseTest {
                         + "</T>\n",
                 ParseOptions.skipMalformedRows());
 
-        Assert.assertEquals(2, table.getDatas().size());
-        Assert.assertArrayEquals(new Object[]{"1", "2", "3"}, table.getDatas().get(0));
-        Assert.assertArrayEquals(new Object[]{"6", "7", "8"}, table.getDatas().get(1));
+        Assert.assertEquals(2, table.getDataRows().size());
+        Assert.assertArrayEquals(new Object[]{"1", "2", "3"}, table.getDataRows().get(0));
+        Assert.assertArrayEquals(new Object[]{"6", "7", "8"}, table.getDataRows().get(1));
     }
 
     @Test
@@ -132,7 +137,7 @@ public class DefaultEfileParseTest {
                         + "@ A B C\n"
                         + "%\n"
                         + "</T>\n",
-                "横表式引导符后缺少字段");
+                "row-based marker must be followed by fields");
     }
 
     @Test
@@ -141,7 +146,7 @@ public class DefaultEfileParseTest {
                         + "@ A B C\n"
                         + "# 1 '2019-11-05 11:25\n"
                         + "</T>\n",
-                "存在未闭合的引号");
+                "Unclosed quote detected");
     }
 
     @Test
@@ -150,7 +155,7 @@ public class DefaultEfileParseTest {
                         + "@@ 属性名\n"
                         + "# 属性 值\n"
                         + "</T>\n",
-                "单列式表头字段数量必须为2或3");
+                "single-column header must contain 2 or 3 fields");
     }
 
     @Test
@@ -159,7 +164,7 @@ public class DefaultEfileParseTest {
                         + "@@ 顺序 属性名 属性值\n"
                         + "# 1 单位名称\n"
                         + "</T>\n",
-                "单列式字段数量不匹配");
+                "single-column field count mismatch");
     }
 
     @Test
@@ -177,9 +182,9 @@ public class DefaultEfileParseTest {
                 ParseOptions.skipMalformedRows());
 
         Assert.assertArrayEquals(new String[]{"单位名称", "发生时间", "次数"}, table.getColumnNames());
-        Assert.assertEquals(2, table.getDatas().size());
-        Assert.assertArrayEquals(new Object[]{"A站", "2011-11-03 00:00:02.0", "1"}, table.getDatas().get(0));
-        Assert.assertArrayEquals(new Object[]{"B站", "2011-11-03 00:00:03.0", "2"}, table.getDatas().get(1));
+        Assert.assertEquals(2, table.getDataRows().size());
+        Assert.assertArrayEquals(new Object[]{"A站", "2011-11-03 00:00:02.0", "1"}, table.getDataRows().get(0));
+        Assert.assertArrayEquals(new Object[]{"B站", "2011-11-03 00:00:03.0", "2"}, table.getDataRows().get(1));
     }
 
     @Test
@@ -188,7 +193,7 @@ public class DefaultEfileParseTest {
                         + "@@ 顺序 属性名 属性值\n"
                         + "# 1 '' 值\n"
                         + "</T>\n",
-                "单列式属性名为空");
+                "single-column property name is empty");
     }
 
     @Test
@@ -197,7 +202,7 @@ public class DefaultEfileParseTest {
                         + "@@ 顺序 属性名 属性值\n"
                         + "# 1 发生时间 '2011-11-03 00:00:02.0\n"
                         + "</T>\n",
-                "存在未闭合的引号");
+                "Unclosed quote detected");
     }
 
     @Test
@@ -206,7 +211,7 @@ public class DefaultEfileParseTest {
                         + "@# 顺序 属性名 A B\n"
                         + "# 1 单位名称\n"
                         + "</T>\n",
-                "多列式字段数量不足");
+                "multi-column row must contain at least 3 fields");
     }
 
     @Test
@@ -216,7 +221,7 @@ public class DefaultEfileParseTest {
                         + "# 1 单位名称 X Y\n"
                         + "# 2 次数 1\n"
                         + "</T>\n",
-                "多列式字段数量不匹配");
+                "multi-column field count mismatch");
     }
 
     @Test
@@ -230,9 +235,9 @@ public class DefaultEfileParseTest {
                 ParseOptions.skipMalformedRows());
 
         Assert.assertArrayEquals(new String[]{"单位名称", "次数"}, table.getColumnNames());
-        Assert.assertEquals(2, table.getDatas().size());
-        Assert.assertArrayEquals(new Object[]{"X", "1"}, table.getDatas().get(0));
-        Assert.assertArrayEquals(new Object[]{"Y", "2"}, table.getDatas().get(1));
+        Assert.assertEquals(2, table.getDataRows().size());
+        Assert.assertArrayEquals(new Object[]{"X", "1"}, table.getDataRows().get(0));
+        Assert.assertArrayEquals(new Object[]{"Y", "2"}, table.getDataRows().get(1));
     }
 
     @Test
@@ -241,7 +246,7 @@ public class DefaultEfileParseTest {
                         + "@# 顺序 属性名 A B\n"
                         + "# 1 '' X Y\n"
                         + "</T>\n",
-                "多列式列名为空");
+                "multi-column column name is empty");
     }
 
     @Test
@@ -249,7 +254,7 @@ public class DefaultEfileParseTest {
         assertParseErrorContains("<T date='2026-01-01'>\n"
                         + "@# 顺序 属性名 A B\n"
                         + "</T>\n",
-                "多列式没有有效的#数据行");
+                "multi-column section does not contain a valid # data row");
     }
 
     @Test
@@ -258,7 +263,7 @@ public class DefaultEfileParseTest {
                         + "@# 顺序 属性名 A B\n"
                         + "# 1 发生时间 '2011-11-03 00:00:02.0 X\n"
                         + "</T>\n",
-                "存在未闭合的引号");
+                "Unclosed quote detected");
     }
 
     @Test
@@ -267,7 +272,7 @@ public class DefaultEfileParseTest {
                         + "@ 顺序 单位名称 发生时间 次数\n"
                         + "# 1 A站 2019-11-5 11:25 100\n"
                         + "</T>\n",
-                "横表式字段数量不匹配");
+                "row-based field count mismatch");
     }
 
     @Test
@@ -279,8 +284,8 @@ public class DefaultEfileParseTest {
                         + "</T>\n",
                 ParseOptions.skipMalformedRows());
 
-        Assert.assertEquals(1, table.getDatas().size());
-        Assert.assertArrayEquals(new Object[]{"1", "A站", "2019-11-5 11:25", "100"}, table.getDatas().get(0));
+        Assert.assertEquals(1, table.getDataRows().size());
+        Assert.assertArrayEquals(new Object[]{"1", "A站", "2019-11-5 11:25", "100"}, table.getDataRows().get(0));
     }
 
     @Test
@@ -289,7 +294,7 @@ public class DefaultEfileParseTest {
                         + "@@ 顺序 属性名 属性值\n"
                         + "# 1 发生时间 2011-11-03 00:00:02.0\n"
                         + "</T>\n",
-                "单列式字段数量不匹配");
+                "single-column field count mismatch");
     }
 
     @Test
@@ -299,7 +304,7 @@ public class DefaultEfileParseTest {
                         + "# 1 发生时间 2011-11-03 00:00:02.0 2011-11-03 00:00:02.0\n"
                         + "# 2 次数 1 2\n"
                         + "</T>\n",
-                "多列式字段数量不匹配");
+                "multi-column field count mismatch");
     }
 
     private ETable parseSingleTable(String content, ParseOptions options) throws Exception {

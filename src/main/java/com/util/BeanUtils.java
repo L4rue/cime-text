@@ -7,50 +7,58 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Maps parsed {@link ETable} rows to annotated Java beans.
+ *
+ * @author dingyh
+ */
 public class BeanUtils {
 
-    public static <E>List<E> parseBean(ETable eTable, Class<E> eClass) throws IllegalAccessException, InstantiationException {
+    /**
+     * Maps each parsed {@link ETable} row to a bean instance annotated with {@link EColumn}.
+     *
+     * @param eTable parsed table to convert
+     * @param eClass bean type that receives row values
+     * @param <E> bean type
+     * @return list of populated bean instances in row order
+     * @throws IllegalAccessException when a mapped field cannot be written
+     * @throws InstantiationException when the bean type cannot be instantiated
+     */
+    public static <E> List<E> parseBean(ETable eTable, Class<E> eClass) throws IllegalAccessException, InstantiationException {
         boolean annotationPresent = eClass.isAnnotationPresent(com.annotation.ETable.class);
-        String eTableValue = eClass.getSimpleName();
-        if(annotationPresent){
+        String expectedTableName = eClass.getSimpleName();
+        if (annotationPresent) {
             com.annotation.ETable tableAnnotation = eClass.getAnnotation(com.annotation.ETable.class);
-            eTableValue = tableAnnotation.value();
+            expectedTableName = tableAnnotation.value();
         }
 
         String tableName = eTable.getTableName();
-        if(!eTableValue.equals(tableName)){
-            StringBuilder str = new StringBuilder();
-            str.append(eTableValue);
-            str.append("与");
-            str.append(tableName);
-            str.append("不一致");
-            throw new RuntimeException(str.toString());
+        if (!expectedTableName.equals(tableName)) {
+            throw new RuntimeException(expectedTableName + " does not match table name " + tableName);
         }
         Field[] fields = eClass.getDeclaredFields();
-        List<Object[]> datas = eTable.getDatas();
+        List<Object[]> datas = eTable.getDataRows();
         String[] columnNames = eTable.getColumnNames();
-        if(columnNames == null){
+        if (columnNames == null) {
             columnNames = new String[0];
         }
-        if(datas == null){
+        if (datas == null) {
             datas = new ArrayList<Object[]>();
         }
         List<ColumnRecord> columnRecords = new ArrayList<>();
         for (Field field : fields) {
-            boolean columnAnnotationPresent = field.isAnnotationPresent(EColumn.class) ;
-            if(columnAnnotationPresent){
+            boolean columnAnnotationPresent = field.isAnnotationPresent(EColumn.class);
+            if (columnAnnotationPresent) {
                 EColumn eColumnAnnotation = field.getAnnotation(EColumn.class);
                 String value = eColumnAnnotation.value();
                 for (int i = 0; i < columnNames.length; i++) {
-                    if(value.equals(columnNames[i])){
-                        ColumnRecord c = new ColumnRecord();
-                        c.setField(field);
-                        c.setIndex(i);
-                        columnRecords.add(c);
+                    if (value.equals(columnNames[i])) {
+                        ColumnRecord columnRecord = new ColumnRecord();
+                        columnRecord.setField(field);
+                        columnRecord.setIndex(i);
+                        columnRecords.add(columnRecord);
                     }
                 }
-
-
             }
         }
 
@@ -62,17 +70,13 @@ public class BeanUtils {
                 Field field = columnRecord.getField();
                 field.setAccessible(true);
                 int index = columnRecord.getIndex();
-                if(data == null || index < 0 || index >= data.length){
+                if (data == null || index < 0 || index >= data.length) {
                     continue;
                 }
-                field.set(e,data[index]);
+                field.set(e, data[index]);
             }
             es.add(e);
-
         }
-
-
-
         return es;
     }
 
@@ -80,7 +84,7 @@ public class BeanUtils {
         try {
             return eClass.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
-            InstantiationException ex = new InstantiationException(eClass.getName() + "实例化失败");
+            InstantiationException ex = new InstantiationException("Failed to instantiate " + eClass.getName());
             ex.initCause(e);
             throw ex;
         }

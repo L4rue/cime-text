@@ -1,6 +1,7 @@
 package com.edom.dom;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
@@ -11,9 +12,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
 import org.w3c.dom.UserDataHandler;
+
 /**
- * @author 王正权
- * 973598066@qq.com
+ * Minimal {@link Element} implementation for parsed E-language nodes.
+ * Methods not required by the parser intentionally return default values.
+ *
+ * @author dingyh
  */
 public class StandardElement implements Element {
 

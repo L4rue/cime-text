@@ -2,6 +2,8 @@ package com.efile;
 
 /**
  * Malformed row handling strategy during table body parsing.
+ *
+ * @author dingyh
  */
 public enum MalformedRowPolicy {
     /**
