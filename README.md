@@ -1,6 +1,6 @@
 # cime-text
 
-E 文本（E 语言）解析库，支持横表式（`@`）、单列式（`@@`）、多列式（`@#`）三类表体。
+E 文本（E 语言）解析库，支持横表式（`@`）、单列式（`@@`）、多列式（`@#`）三类表体，并保留文件头、完整标签名和标签属性等元数据。
 
 ## 环境要求
 
@@ -18,6 +18,31 @@ List<ETable> tables = parser.parseFile(new File("data/横表式.txt"));
 ```
 
 默认策略是严格模式，遇到异常行会抛出包含表名和行号的异常。
+
+## 解析文件头和标签属性
+
+如果只关心表数据，可以继续使用 `parseFile(...)`。如果需要读取文件头、完整标签名、`DDMM` 等标签属性，使用 `parseDocument(...)`：
+
+```java
+import io.github.l4rue.cime.model.EFileDocument;
+import io.github.l4rue.cime.model.ETable;
+import io.github.l4rue.cime.parse.DefaultEfileParse;
+
+DefaultEfileParse parser = new DefaultEfileParse();
+EFileDocument document = parser.parseDocument(new File("data/多列式.txt"));
+
+String entity = document.getHeader().getAttribute("Entity");
+String type = document.getHeader().getAttribute("type");
+String dataTime = document.getHeader().getAttribute("dataTime");
+
+ETable table = document.getTables().get(0);
+String logicalName = table.getTableName(); // DG
+String fullTagName = table.getTagName();   // DG::铁心桥
+String date = table.getAttribute("date");  // 2012-04-23
+String ddmm = table.getAttribute("DDMM");  // 达梦
+```
+
+`ETable.tableName` 仍表示逻辑表名，例如 `DG`，用于兼容业务对象映射；`ETable.tagName` 保留原始完整标签名，例如 `DG::铁心桥`。标签属性按源文件顺序保存在 `ETable.attributes` 中，`date` 同时保留为兼容字段。
 
 ## 解析策略配置
 
@@ -45,9 +70,67 @@ import io.github.l4rue.cime.mapping.BeanUtils;
 List<BizBean> beans = BeanUtils.parseBean(table, BizBean.class);
 ```
 
+## ETable 写出到文件
+
+使用 `DefaultEfileWrite` 可以把 `ETable` 写出为 UTF-8 编码的 E 文本文件。旧的 `List<ETable>` 写出入口默认输出横表式（`@`）：
+
+```java
+import io.github.l4rue.cime.write.DefaultEfileWrite;
+
+DefaultEfileWrite writer = new DefaultEfileWrite();
+writer.writeFile(tables, new File("out.dt"));
+```
+
+也可以显式选择单列式（`@@`）或多列式（`@#`）：
+
+```java
+import io.github.l4rue.cime.write.WriteOptions;
+
+writer.writeFile(tables, new File("out-single.dt"), WriteOptions.singleColumn());
+writer.writeFile(tables, new File("out-multi.dt"), WriteOptions.multiColumn());
+```
+
+非横表式没有类型、单位、限值的承载位置，因此当 `types`、`units` 或 `limitValues` 存在时会拒绝写成单列式或多列式。
+
+## Parse-Write Round-Trip
+
+如果需要解析后尽量按原始结构写回，使用文档级入口。该入口会写回文件头、完整标签名、标签属性，并优先保留解析到的表体格式：
+
+```java
+import io.github.l4rue.cime.model.EFileDocument;
+import io.github.l4rue.cime.parse.DefaultEfileParse;
+import io.github.l4rue.cime.write.DefaultEfileWrite;
+import io.github.l4rue.cime.write.WriteOptions;
+
+DefaultEfileParse parser = new DefaultEfileParse();
+EFileDocument document = parser.parseDocument(new File("data/多列式.txt"));
+
+DefaultEfileWrite writer = new DefaultEfileWrite();
+writer.writeFile(document, new File("out.dt"));
+
+// 等价显式写法：
+writer.writeFile(document, new File("out.dt"), WriteOptions.preserveSourceLayout());
+```
+
+示例输入：
+
+```text
+<! Entity=铁心桥 type=测试2011-11-03 dataTime='20120423 13:30:07' !>
+<DG::铁心桥 date='2012-04-23' DDMM='达梦' >
+```
+
+写出时会继续保留：
+
+```text
+<! Entity=铁心桥 type=测试2011-11-03 dataTime='20120423 13:30:07' !>
+<DG::铁心桥 date='2012-04-23' DDMM='达梦'>
+```
+
+当前 round-trip 保证结构和元数据不丢失；表体行的空格、表头行显示值等格式细节会按 writer 的规范化格式重新生成。
+
 ## 测试
 
-仓库已补齐样例驱动测试，覆盖三种表格式、引号切分、`date` 属性解析、异常策略与 Bean 映射。
+仓库已补齐样例驱动测试，覆盖三种表格式、引号切分、文件头解析、标签属性解析、异常策略、Bean 映射和文档级写回。
 
 ```bash
 mvn test

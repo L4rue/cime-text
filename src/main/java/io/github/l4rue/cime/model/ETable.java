@@ -1,7 +1,9 @@
 package io.github.l4rue.cime.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a parsed E-language table, including metadata and row data.
@@ -14,6 +16,21 @@ public class ETable {
      * Table name.
      */
     private String tableName;
+
+    /**
+     * Full source tag name.
+     */
+    private String tagName;
+
+    /**
+     * Source tag attributes.
+     */
+    private LinkedHashMap<String, EAttribute> attributes;
+
+    /**
+     * Source table body layout.
+     */
+    private ETableLayout sourceLayout;
 
     /**
      * Table-level date metadata.
@@ -42,6 +59,7 @@ public class ETable {
      * Creates an empty parsed table model.
      */
     public ETable() {
+        attributes = new LinkedHashMap<String, EAttribute>();
         dataRows = new ArrayList<Object[]>();
     }
 
@@ -61,6 +79,126 @@ public class ETable {
      */
     public void setTableName(String tableName) {
         this.tableName = tableName;
+    }
+
+    /**
+     * Returns the full source tag name.
+     *
+     * @return full source tag name, or {@code null} when unavailable
+     */
+    public String getTagName() {
+        return tagName;
+    }
+
+    /**
+     * Sets the full source tag name.
+     *
+     * @param tagName full source tag name
+     */
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
+    }
+
+    /**
+     * Returns source tag attributes in source order.
+     *
+     * @return mutable attribute map
+     */
+    public LinkedHashMap<String, EAttribute> getAttributes() {
+        return attributes;
+    }
+
+    /**
+     * Replaces source tag attributes.
+     *
+     * @param attributes attributes to store
+     */
+    public void setAttributes(Map<String, EAttribute> attributes) {
+        this.attributes = new LinkedHashMap<String, EAttribute>();
+        if (attributes != null) {
+            for (EAttribute attribute : attributes.values()) {
+                putAttribute(attribute);
+            }
+        }
+    }
+
+    /**
+     * Adds or replaces a source tag attribute.
+     *
+     * @param name  attribute name
+     * @param value attribute value
+     */
+    public void putAttribute(String name, String value) {
+        putAttribute(new EAttribute(name, value));
+    }
+
+    /**
+     * Adds or replaces a source tag attribute.
+     *
+     * @param attribute attribute to store
+     */
+    public void putAttribute(EAttribute attribute) {
+        if (attribute == null || attribute.getName() == null) {
+            return;
+        }
+        attributes.put(attribute.getName(), attribute);
+        if ("date".equals(attribute.getName())) {
+            date = attribute.getValue();
+        }
+    }
+
+    /**
+     * Removes a source tag attribute.
+     *
+     * @param name attribute name
+     */
+    public void removeAttribute(String name) {
+        if (name == null) {
+            return;
+        }
+        attributes.remove(name);
+        if ("date".equals(name)) {
+            date = "";
+        }
+    }
+
+    /**
+     * Returns a source tag attribute value.
+     *
+     * @param name attribute name
+     * @return attribute value, or {@code null} when absent
+     */
+    public String getAttribute(String name) {
+        EAttribute attribute = getAttributeNode(name);
+        return attribute == null ? null : attribute.getValue();
+    }
+
+    /**
+     * Returns a source tag attribute object.
+     *
+     * @param name attribute name
+     * @return attribute object, or {@code null} when absent
+     */
+    public EAttribute getAttributeNode(String name) {
+        return attributes.get(name);
+    }
+
+    /**
+     * Returns the source table body layout detected by the parser.
+     *
+     * @return source layout, or {@code null} when unknown
+     */
+    public ETableLayout getSourceLayout() {
+        return sourceLayout;
+    }
+
+    /**
+     * Sets the source table body layout.
+     *
+     * @param sourceLayout source layout
+     */
+    public void setSourceLayout(ETableLayout sourceLayout) {
+        this.sourceLayout = sourceLayout;
     }
 
     /**
@@ -137,6 +275,11 @@ public class ETable {
      */
     public void setDate(String date) {
         this.date = date;
+        if (date != null && date.length() > 0) {
+            putAttribute("date", date);
+        } else if (attributes.containsKey("date")) {
+            attributes.get("date").setValue(date == null ? "" : date);
+        }
     }
 
     /**

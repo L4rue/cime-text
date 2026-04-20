@@ -1,14 +1,24 @@
 package io.github.l4rue.cime.parse;
 
+import io.github.l4rue.cime.internal.io.EfileUtils;
 import io.github.l4rue.cime.internal.sax.EdomSAXReader;
 import io.github.l4rue.cime.internal.util.StringUtils;
+import io.github.l4rue.cime.model.EAttribute;
+import io.github.l4rue.cime.model.EFileDocument;
+import io.github.l4rue.cime.model.EHeader;
 import io.github.l4rue.cime.model.ETable;
+import io.github.l4rue.cime.model.ETableLayout;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,18 +33,45 @@ public class DefaultEfileParse implements EFileParse {
 
     @Override
     public List<ETable> parseFile(File file) throws Exception {
-        return parseFile(file, ParseOptions.strict());
+        return parseDocument(file, ParseOptions.strict()).getTables();
     }
 
     @Override
     public List<ETable> parseFile(File file, ParseOptions options) throws Exception {
+        return parseDocument(file, options).getTables();
+    }
+
+    /**
+     * Parses an E-language file with file-level and table-level metadata.
+     *
+     * @param file source file to parse
+     * @return parsed document
+     * @throws Exception when parsing fails
+     */
+    @Override
+    public EFileDocument parseDocument(File file) throws Exception {
+        return parseDocument(file, ParseOptions.strict());
+    }
+
+    /**
+     * Parses an E-language file with explicit parser options and metadata.
+     *
+     * @param file    source file to parse
+     * @param options parse options that control malformed-row handling
+     * @return parsed document
+     * @throws Exception when parsing fails
+     */
+    @Override
+    public EFileDocument parseDocument(File file, ParseOptions options) throws Exception {
         if (file == null) {
             throw new IllegalArgumentException("file must not be null");
         }
         ParseOptions effectiveOptions = options == null ? ParseOptions.strict() : options;
         EdomSAXReader reader = new EdomSAXReader();
         Document doc = reader.read(file);
-        List<ETable> tableList = new ArrayList<ETable>();
+        EFileDocument document = new EFileDocument();
+        document.setHeader(parseFileHeader(file));
+        List<ETable> tableList = document.getTables();
 
         NodeList nodeList = doc.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -44,18 +81,39 @@ public class DefaultEfileParse implements EFileParse {
             }
             Element ele = (Element) node;
             ETable table = new ETable();
-            String tagName = ele.getTagName();
-            if (tagName.contains("::")) {
-                table.setTableName(tagName.split("::")[0]);
-            } else {
-                table.setTableName(tagName);
-            }
-            String date = ele.getAttribute("date");
-            table.setDate(date == null ? "" : date);
+            copyElementMetadata(table, ele);
             parseTableData(table, ele.getTextContent(), effectiveOptions);
             tableList.add(table);
         }
-        return tableList;
+        return document;
+    }
+
+    private void copyElementMetadata(ETable table, Element ele) {
+        String tagName = ele.getTagName();
+        table.setTagName(tagName);
+        table.setTableName(extractLogicalTableName(tagName));
+
+        NamedNodeMap attrs = ele.getAttributes();
+        for (int i = 0; i < attrs.getLength(); i++) {
+            Node attrNode = attrs.item(i);
+            if (attrNode instanceof Attr) {
+                Attr attr = (Attr) attrNode;
+                table.putAttribute(new EAttribute(attr.getName(), attr.getValue(), Character.valueOf('\'')));
+            }
+        }
+        String date = table.getAttribute("date");
+        table.setDate(date == null ? "" : date);
+    }
+
+    private String extractLogicalTableName(String tagName) {
+        if (tagName == null) {
+            return null;
+        }
+        int separator = tagName.indexOf("::");
+        if (separator >= 0) {
+            return tagName.substring(0, separator);
+        }
+        return tagName;
     }
 
     private void parseTableData(ETable table, String content, ParseOptions options) {
@@ -70,13 +128,140 @@ public class DefaultEfileParse implements EFileParse {
         }
         String headStr = contentArr[headLineIndex].trim();
         if (headStr.startsWith("@@")) {
+            table.setSourceLayout(ETableLayout.SINGLE_COLUMN);
             parseSingleColType(table, contentArr, headLineIndex, options);
         } else if (headStr.startsWith("@#")) {
+            table.setSourceLayout(ETableLayout.MULTI_COLUMN);
             parseMultiColType(table, contentArr, headLineIndex, options);
         } else if (headStr.startsWith("@")) {
+            table.setSourceLayout(ETableLayout.HORIZONTAL);
             parseRowType(table, contentArr, headLineIndex, options);
         } else {
             throw parseException(tableName, headLineIndex + 1, "first line must start with @, @@, or @#");
+        }
+    }
+
+    private EHeader parseFileHeader(File file) throws IOException {
+        String encoding = EfileUtils.getCharset(file);
+        Charset charset = encoding == null ? Charset.defaultCharset() : Charset.forName(encoding);
+        String content = new String(Files.readAllBytes(file.toPath()), charset);
+        return parseHeaderText(content);
+    }
+
+    private EHeader parseHeaderText(String content) {
+        EHeader header = new EHeader();
+        if (content == null) {
+            return header;
+        }
+        int start = findFirstHeaderStart(content);
+        if (start < 0) {
+            return header;
+        }
+        int end = findHeaderEnd(content, start + 2);
+        if (end < 0) {
+            throw new IllegalArgumentException("E-file parsing failed header is not closed");
+        }
+        header.setRawText(content.substring(start, end + 2));
+        String headerContent = content.substring(start + 2, end);
+        parseHeaderAttributes(header, headerContent);
+        return header;
+    }
+
+    private int findFirstHeaderStart(String content) {
+        int pos = 0;
+        while (pos < content.length()) {
+            char current = content.charAt(pos);
+            if (isWhitespace(current)) {
+                pos++;
+                continue;
+            }
+            if (current == '<' && pos + 1 < content.length() && content.charAt(pos + 1) == '!') {
+                return pos;
+            }
+            return -1;
+        }
+        return -1;
+    }
+
+    private int findHeaderEnd(String content, int start) {
+        Character quote = null;
+        for (int pos = start; pos + 1 < content.length(); pos++) {
+            char current = content.charAt(pos);
+            if (quote != null) {
+                if (current == quote.charValue()) {
+                    quote = null;
+                }
+                continue;
+            }
+            if (current == '\'' || current == '"') {
+                quote = Character.valueOf(current);
+                continue;
+            }
+            if (current == '!' && content.charAt(pos + 1) == '>') {
+                return pos;
+            }
+        }
+        return -1;
+    }
+
+    private void parseHeaderAttributes(EHeader header, String headerContent) {
+        int pos = 0;
+        int length = headerContent.length();
+        while (pos < length) {
+            while (pos < length && isWhitespace(headerContent.charAt(pos))) {
+                pos++;
+            }
+            if (pos >= length) {
+                return;
+            }
+            int nameStart = pos;
+            while (pos < length) {
+                char current = headerContent.charAt(pos);
+                if (current == '=' || isWhitespace(current)) {
+                    break;
+                }
+                pos++;
+            }
+            String attrName = headerContent.substring(nameStart, pos).trim();
+            while (pos < length && isWhitespace(headerContent.charAt(pos))) {
+                pos++;
+            }
+            if (pos >= length || headerContent.charAt(pos) != '=') {
+                throw new IllegalArgumentException("E-file parsing failed header attribute missing '=': " + headerContent);
+            }
+            pos++;
+            while (pos < length && isWhitespace(headerContent.charAt(pos))) {
+                pos++;
+            }
+            if (pos >= length) {
+                throw new IllegalArgumentException("E-file parsing failed header attribute value missing: " + headerContent);
+            }
+            Character quote = null;
+            String attrValue;
+            char valueStartChar = headerContent.charAt(pos);
+            if (valueStartChar == '\'' || valueStartChar == '"') {
+                quote = Character.valueOf(valueStartChar);
+                pos++;
+                int valueStart = pos;
+                while (pos < length && headerContent.charAt(pos) != quote.charValue()) {
+                    pos++;
+                }
+                if (pos >= length) {
+                    throw new IllegalArgumentException("E-file parsing failed header attribute has unclosed quote: " + headerContent);
+                }
+                attrValue = headerContent.substring(valueStart, pos);
+                pos++;
+            } else {
+                int valueStart = pos;
+                while (pos < length && !isWhitespace(headerContent.charAt(pos))) {
+                    pos++;
+                }
+                attrValue = headerContent.substring(valueStart, pos);
+            }
+            if (attrName.length() == 0) {
+                throw new IllegalArgumentException("E-file parsing failed header attribute name is empty: " + headerContent);
+            }
+            header.putAttribute(new EAttribute(attrName, attrValue, quote));
         }
     }
 
@@ -329,5 +514,9 @@ public class DefaultEfileParse implements EFileParse {
             }
         }
         return true;
+    }
+
+    private boolean isWhitespace(char chr) {
+        return chr == ' ' || chr == '\n' || chr == '\t' || chr == '\r' || chr == '\f';
     }
 }

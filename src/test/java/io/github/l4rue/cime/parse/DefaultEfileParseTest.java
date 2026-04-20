@@ -1,6 +1,8 @@
 package io.github.l4rue.cime.parse;
 
+import io.github.l4rue.cime.model.EFileDocument;
 import io.github.l4rue.cime.model.ETable;
+import io.github.l4rue.cime.model.ETableLayout;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,8 +53,31 @@ public class DefaultEfileParseTest {
         Assert.assertEquals(1, tables.size());
         ETable table = tables.get(0);
         Assert.assertEquals("DG", table.getTableName());
+        Assert.assertEquals("DG::铁心桥", table.getTagName());
+        Assert.assertEquals("达梦", table.getAttribute("DDMM"));
         Assert.assertArrayEquals(new String[]{"单位名称", "发生时间", "次数"}, table.getColumnNames());
         Assert.assertEquals(4, table.getDataRows().size());
+    }
+
+    @Test
+    public void shouldParseFileHeaderTagAttributesAndSourceLayout() throws Exception {
+        DefaultEfileParse parser = new DefaultEfileParse();
+        EFileDocument document = parser.parseDocument(new File("data/多列式.txt"));
+
+        Assert.assertEquals("铁心桥", document.getHeader().getAttribute("Entity"));
+        Assert.assertEquals("测试2011-11-03", document.getHeader().getAttribute("type"));
+        Assert.assertEquals("20120423 13:30:07", document.getHeader().getAttribute("dataTime"));
+        Assert.assertNull(document.getHeader().getAttributeNode("Entity").getQuote());
+        Assert.assertEquals(Character.valueOf('\''), document.getHeader().getAttributeNode("dataTime").getQuote());
+
+        Assert.assertEquals(1, document.getTables().size());
+        ETable table = document.getTables().get(0);
+        Assert.assertEquals("DG", table.getTableName());
+        Assert.assertEquals("DG::铁心桥", table.getTagName());
+        Assert.assertEquals("2012-04-23", table.getDate());
+        Assert.assertEquals("2012-04-23", table.getAttribute("date"));
+        Assert.assertEquals("达梦", table.getAttribute("DDMM"));
+        Assert.assertEquals(ETableLayout.MULTI_COLUMN, table.getSourceLayout());
     }
 
     @Test
