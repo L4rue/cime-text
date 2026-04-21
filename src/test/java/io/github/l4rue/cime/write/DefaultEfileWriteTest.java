@@ -172,28 +172,36 @@ public class DefaultEfileWriteTest {
     }
 
     @Test
-    public void shouldRejectHorizontalMetadataForSingleColumnLayout() {
+    public void shouldDropHorizontalMetadataForSingleColumnLayout() throws Exception {
         ETable table = createTableWithMetadata();
         DefaultEfileWrite writer = new DefaultEfileWrite();
-
+        File file = createTempEFile();
         try {
-            writer.writeToString(Collections.singletonList(table), WriteOptions.singleColumn());
-            Assert.fail("Expected writer to reject unsupported metadata");
-        } catch (IllegalArgumentException ex) {
-            Assert.assertTrue(ex.getMessage().contains("does not support types, units, or limit values"));
+            writer.writeFile(Collections.singletonList(table), file, WriteOptions.singleColumn());
+            ETable parsed = parseSingleTable(file);
+
+            Assert.assertNull(parsed.getTypes());
+            Assert.assertNull(parsed.getUnits());
+            Assert.assertNull(parsed.getLimitValues());
+        } finally {
+            Files.deleteIfExists(file.toPath());
         }
     }
 
     @Test
-    public void shouldRejectHorizontalMetadataForMultiColumnLayout() {
+    public void shouldDropHorizontalMetadataForMultiColumnLayout() throws Exception {
         ETable table = createTableWithMetadata();
         DefaultEfileWrite writer = new DefaultEfileWrite();
-
+        File file = createTempEFile();
         try {
-            writer.writeToString(Collections.singletonList(table), WriteOptions.multiColumn());
-            Assert.fail("Expected writer to reject unsupported metadata");
-        } catch (IllegalArgumentException ex) {
-            Assert.assertTrue(ex.getMessage().contains("does not support types, units, or limit values"));
+            writer.writeFile(Collections.singletonList(table), file, WriteOptions.multiColumn());
+            ETable parsed = parseSingleTable(file);
+
+            Assert.assertNull(parsed.getTypes());
+            Assert.assertNull(parsed.getUnits());
+            Assert.assertNull(parsed.getLimitValues());
+        } finally {
+            Files.deleteIfExists(file.toPath());
         }
     }
 

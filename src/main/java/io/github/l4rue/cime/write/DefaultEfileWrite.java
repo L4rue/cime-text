@@ -166,7 +166,6 @@ public class DefaultEfileWrite implements EFileWrite {
     }
 
     private void writeSingleColumnTable(StringBuilder sb, ETable table) {
-        rejectHorizontalMetadata(table, TableLayout.SINGLE_COLUMN);
         String[] columns = requireColumns(table);
         List<Object[]> rows = requireRows(table);
         if (rows.isEmpty()) {
@@ -186,7 +185,6 @@ public class DefaultEfileWrite implements EFileWrite {
     }
 
     private void writeMultiColumnTable(StringBuilder sb, ETable table) {
-        rejectHorizontalMetadata(table, TableLayout.MULTI_COLUMN);
         String[] columns = requireColumns(table);
         List<Object[]> rows = requireRows(table);
         if (rows.isEmpty()) {
@@ -291,12 +289,6 @@ public class DefaultEfileWrite implements EFileWrite {
         if (row.length != expectedLength) {
             throw new IllegalArgumentException("data row field count mismatch at index " + rowIndex
                     + ", expected " + expectedLength + " but was " + row.length);
-        }
-    }
-
-    private void rejectHorizontalMetadata(ETable table, TableLayout layout) {
-        if (table.getTypes() != null || table.getUnits() != null || table.getLimitValues() != null) {
-            throw new IllegalArgumentException(layout + " layout does not support types, units, or limit values");
         }
     }
 
