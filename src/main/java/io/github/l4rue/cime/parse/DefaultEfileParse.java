@@ -175,12 +175,43 @@ public class DefaultEfileParse implements EFileParse {
                 pos++;
                 continue;
             }
+            if (startsWith(content, pos, "//")) {
+                pos = skipLineComment(content, pos + 2);
+                continue;
+            }
+            if (startsWith(content, pos, "/*")) {
+                pos = skipBlockComment(content, pos + 2, "*/");
+                continue;
+            }
             if (current == '<' && pos + 1 < content.length() && content.charAt(pos + 1) == '!') {
                 return pos;
             }
             return -1;
         }
         return -1;
+    }
+
+    private boolean startsWith(String content, int pos, String prefix) {
+        return pos + prefix.length() <= content.length() && content.startsWith(prefix, pos);
+    }
+
+    private int skipLineComment(String content, int pos) {
+        while (pos < content.length()) {
+            char current = content.charAt(pos);
+            pos++;
+            if (current == '\n' || current == '\r') {
+                break;
+            }
+        }
+        return pos;
+    }
+
+    private int skipBlockComment(String content, int pos, String terminator) {
+        int end = content.indexOf(terminator, pos);
+        if (end < 0) {
+            return content.length();
+        }
+        return end + terminator.length();
     }
 
     private int findHeaderEnd(String content, int start) {

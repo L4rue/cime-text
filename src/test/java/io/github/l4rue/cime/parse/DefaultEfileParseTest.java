@@ -81,6 +81,27 @@ public class DefaultEfileParseTest {
     }
 
     @Test
+    public void shouldParseFileHeaderAfterLeadingComment() throws Exception {
+        File file = createTempEFile("// generated file\n"
+                + "<! Entity=铁心桥 type=测试 dataTime='20120423 13:30:07' !>\n"
+                + "<DG::铁心桥 date='2012-04-23' DDMM='达梦'>\n"
+                + "@#顺序 属性名 A B\n"
+                + "#1 单位名称 花花电网 花花电网\n"
+                + "#2 次数 32 32\n"
+                + "</DG::铁心桥>\n");
+        try {
+            DefaultEfileParse parser = new DefaultEfileParse();
+            EFileDocument document = parser.parseDocument(file);
+
+            Assert.assertEquals("铁心桥", document.getHeader().getAttribute("Entity"));
+            Assert.assertEquals("测试", document.getHeader().getAttribute("type"));
+            Assert.assertEquals("20120423 13:30:07", document.getHeader().getAttribute("dataTime"));
+        } finally {
+            Files.deleteIfExists(file.toPath());
+        }
+    }
+
+    @Test
     public void shouldParseTabSeparatedQuotedDatetimeSample() throws Exception {
         DefaultEfileParse parser = new DefaultEfileParse();
         List<ETable> tables = parser.parseFile(new File("data/LP_K8000_STAdfgYDB_20191105_113002.DT"));

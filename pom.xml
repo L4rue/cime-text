@@ -7,7 +7,7 @@
 
     <groupId>io.github.l4rue</groupId>
     <artifactId>cime-text</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
     <description>A library for parsing and building CIM/E files</description>
     <name>cime-text</name>
